@@ -24,7 +24,7 @@ pipeline {
                     echo "${env.PLAYBOOK}"
                     sh '''
                     cd ansible-project
-                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/'''${env.PLAYBOOK}''' -u ubuntu
+                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/$PLAYBOOK -u ubuntu
                     '''
                 }
             }
