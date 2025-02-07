@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        ANSIBLE_HOST_KEY_CHECKING = 'False'
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    sh 'rm -rf ansible-project || true'
+                    sh 'git clone https://github.com/mimyrtek/proxmox_ansible_project.git ansible-project'
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                script {
+                    sh '''
+                    cd ansible-project
+                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/install_vault.yaml
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Ansible playbook executed successfully!'
+        }
+        failure {
+            echo 'Ansible playbook execution failed.'
+        }
+    }
+}
