@@ -1,0 +1,12 @@
+---
+- name: Install Vault using Snap
+  command: snap install vault --classic
+
+- name: Verify Vault Installation
+  command: vault --version
+  register: vault_version
+  changed_when: false
+
+- name: Show Installed Vault Version
+  debug:
+    msg: "Vault version: {{ vault_version.stdout }}"

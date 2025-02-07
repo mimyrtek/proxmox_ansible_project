@@ -1,0 +1,4 @@
+# Main site playbook
+---
+- import_playbook: playbooks/webservers.yml
+- import_playbook: playbooks/dbservers.yml

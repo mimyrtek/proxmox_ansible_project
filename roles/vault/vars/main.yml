@@ -1,0 +1,3 @@
+---
+# vars file for vault
+vault_service_name: vault
