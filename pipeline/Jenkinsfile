@@ -21,7 +21,7 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 script {
-                    echo ${env.PLAYBOOK}
+                    echo "${env.PLAYBOOK}"
                     sh '''
                     cd ansible-project
                     ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
