@@ -20,7 +20,7 @@ pipeline {
                 script {
                     sh '''
                     cd ansible-project
-                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/install_vault.yaml
+                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/install_vault.yaml -u ubuntu
                     '''
                 }
             }
