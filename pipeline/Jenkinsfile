@@ -21,12 +21,18 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 script {
-                    echo "${env.PLAYBOOK}"
-                    sh '''
-                    #!/bin/bash
-                    cd ansible-project
-                    ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
-                    '''
+                   echo "Playbook: ${env.PLAYBOOK}"
+                   // Construct the command string
+                   def command = """
+                       #!/bin/bash
+                       cd ansible-project
+                       ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
+                   """
+       
+                   echo "Executing command: ${command}" // Debugging
+       
+                   // Run the command
+                   sh command
                 }
             }
         }
