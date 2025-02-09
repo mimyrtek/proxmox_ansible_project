@@ -5,7 +5,7 @@ pipeline {
     }
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
-        PLAYBOOK="$params.playbook"
+        PLAYBOOK = "$params.playbook"
     }
 
     stages {
@@ -21,18 +21,18 @@ pipeline {
         stage('Run Ansible Playbook') {
             steps {
                 ansiColor('xterm') {
-                script {
-                   echo "Playbook: ${env.PLAYBOOK}"
-                   // Construct the command string
-                   def command = """
+                    script {
+                        echo "Playbook: ${env.PLAYBOOK}"
+                        // Construct the command string
+                        def command = """
                        #!/bin/bash
                        cd ansible-project
-                       ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
+                       ansible-playbook -i ./inventory/inventory.yaml -vvv -b ./playbooks/${env.PLAYBOOK} -u ubuntu
                    """
-                   echo "Executing command: ${command}" // Debugging
-                    // Run the command
-                   sh command
-                }
+                        echo "Executing command: ${command}" // Debugging
+                        // Run the command
+                        sh command
+                    }
                 }
             }
         }
@@ -45,5 +45,6 @@ pipeline {
         failure {
             echo 'Ansible playbook execution failed.'
         }
+        
     }
 }
