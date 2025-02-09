@@ -20,6 +20,7 @@ pipeline {
 
         stage('Run Ansible Playbook') {
             steps {
+                ansiColor('xterm') {
                 script {
                    echo "Playbook: ${env.PLAYBOOK}"
                    // Construct the command string
@@ -28,11 +29,10 @@ pipeline {
                        cd ansible-project
                        ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
                    """
-       
                    echo "Executing command: ${command}" // Debugging
-       
-                   // Run the command
+                    // Run the command
                    sh command
+                }
                 }
             }
         }
