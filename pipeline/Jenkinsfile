@@ -4,12 +4,12 @@ pipeline {
         //choice(name: 'playbook', choices: ['install_vault.yaml'])
         choice(
             name: 'PLAYBOOK',
-            choices: ['install_vault.yaml', 'configure_vault.yaml', 'deploy_vault.yaml'],
+            choices: ['install_vault.yaml'],
             description: 'Select the Ansible playbook to run'
         )
         choice(
             name: 'HOST_NAME',
-            choices: ['vault', 'db-server', 'web-server'],
+            choices: ['vault' ],
             description: 'Select the target host from the inventory'
         )
 
@@ -38,7 +38,7 @@ pipeline {
                         def command = """
                        #!/bin/bash
                        cd ansible-project
-                       ansible-playbook -i ./inventory/inventory.yaml -v -b -l vault ./playbooks/${env.PLAYBOOK} -u ubuntu
+                       ansible-playbook -i ./inventory/inventory.yaml -v -b -l ${env.HOST_NAME} ./playbooks/${env.PLAYBOOK} -u ubuntu
                    """
                         echo "Executing command: ${command}" // Debugging
                         // Run the command
