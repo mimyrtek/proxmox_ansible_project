@@ -1,7 +1,18 @@
 pipeline {
     agent any
     parameters {
-        choice(name: 'playbook', choices: ['install_vault.yaml'])
+        //choice(name: 'playbook', choices: ['install_vault.yaml'])
+        choice(
+            name: 'PLAYBOOK',
+            choices: ['install_vault.yaml', 'configure_vault.yaml', 'deploy_vault.yaml'],
+            description: 'Select the Ansible playbook to run'
+        )
+        choice(
+            name: 'HOST_NAME',
+            choices: ['vault', 'db-server', 'web-server'],
+            description: 'Select the target host from the inventory'
+        )
+
     }
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
