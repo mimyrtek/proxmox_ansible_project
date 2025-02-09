@@ -12,7 +12,6 @@ pipeline {
             choices: ['vault' ],
             description: 'Select the target host from the inventory'
         )
-
     }
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
@@ -57,6 +56,5 @@ pipeline {
         failure {
             echo 'Ansible playbook execution failed.'
         }
-        
     }
 }
