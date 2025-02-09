@@ -3,12 +3,12 @@ pipeline {
     parameters {
         //choice(name: 'playbook', choices: ['install_vault.yaml'])
         choice(
-            name: 'PLAYBOOK',
+            name: 'playbook',
             choices: ['install_vault.yaml'],
             description: 'Select the Ansible playbook to run'
         )
         choice(
-            name: 'HOST_NAME',
+            name: 'host_name',
             choices: ['vault' ],
             description: 'Select the target host from the inventory'
         )
@@ -17,6 +17,7 @@ pipeline {
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
         PLAYBOOK = "$params.playbook"
+        HOST_NAME = "$params.host_name"
     }
 
     stages {
