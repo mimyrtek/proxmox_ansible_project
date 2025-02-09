@@ -27,7 +27,7 @@ pipeline {
                         def command = """
                        #!/bin/bash
                        cd ansible-project
-                       ansible-playbook -i ./inventory/inventory.yaml -vvv -b ./playbooks/${env.PLAYBOOK} -u ubuntu
+                       ansible-playbook -i ./inventory/inventory.yaml -v -b -l vault ./playbooks/${env.PLAYBOOK} -u ubuntu
                    """
                         echo "Executing command: ${command}" // Debugging
                         // Run the command
