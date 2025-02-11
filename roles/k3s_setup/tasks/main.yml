@@ -35,7 +35,7 @@
       notify: Restart K3s
 
 - name: Install K3s Worker Nodes
-  when: "'k3s-node' in inventory_hostname"
+  when: "'k3s-nodes' in inventory_hostname"
   block:
 
     - name: Wait for K3s master to be ready
