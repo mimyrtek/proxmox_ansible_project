@@ -1,4 +1,27 @@
 ---
+- name: Ensure required dependencies are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - curl
+    - iptables
+    - socat
+    - conntrack
+    - firewalld
+
+
+- name: Disable Swap (K3s does not support swap)
+  command: swapoff -a
+  ignore_errors: yes
+
+- name: Disable Swap Permanently
+  replace:
+    path: /etc/fstab
+    regexp: '^(.*\sswap\s.*)$'
+    replace: '#\1'
+
 - name: Install K3s Master
   when: "'k3s-master' in inventory_hostname"
   block:
