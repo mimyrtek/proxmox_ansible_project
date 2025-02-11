@@ -1,6 +1,6 @@
 ---
 - name: Install HashiCorp Vault using Ansible Role
-  hosts: vault
+  hosts: all
   become: yes
   roles:
     - vault
