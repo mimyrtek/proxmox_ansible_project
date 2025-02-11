@@ -1,22 +1,22 @@
 all:
   children:
-    k3s_master:
+    k3smaster:
       hosts:
-        k3s_master:
+        k3smaster:
           ansible_host: 10.10.50.151
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-    k3s_nodes:
+    k3snodes:
       hosts:
-        k3s_node_1:
+        k3snode1:
           ansible_host: 10.10.50.152
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k3s_node_2:
+        k3snode2:
           ansible_host: 10.10.50.153
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k3s_node_3:
+        k3snode3:
           ansible_host: 10.10.50.154
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519

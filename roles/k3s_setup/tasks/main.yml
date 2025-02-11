@@ -23,16 +23,16 @@
     replace: '#\1'
 
 - name: Install K3s Master
-  when: "'k3s_master' in inventory_hostname"
+  when: "'k3smaster' in inventory_hostname"
   block:
 
     - name: Install K3s on master with correct IP
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
+        curl -sfL https://get.k3s.io | INSTALL_k3sEXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
       args:
         executable: /bin/bash
-      register: k3s_master_installed
-      changed_when: "'Already installed' not in k3s_master_installed.stdout"
+      register: k3smaster_installed
+      changed_when: "'Already installed' not in k3smaster_installed.stdout"
 
 
     - name: Ensure K3s service is running
@@ -44,12 +44,12 @@
 
     - name: Get K3s token from master
       command: cat /var/lib/rancher/k3s/server/node-token
-      register: k3s_token
+      register: k3stoken
       changed_when: false
 
     - name: Save K3s token for worker nodes
       set_fact:
-        k3s_token_value: "{{ k3s_token.stdout }}"
+        k3stoken_value: "{{ k3stoken.stdout }}"
 
     - name: Ensure kubeconfig uses correct master IP
       replace:
@@ -59,26 +59,26 @@
       notify: Restart K3s
 
 - name: Install K3s Worker Nodes
-  when: "'k3s_nodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
+  when: "'k3snodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
   block:
 
     # - name: Wait for K3s master to be ready
     #   wait_for:
-    #     host: "{{ hostvars['k3s_master']['ansible_host'] }}"
+    #     host: "{{ hostvars['k3smaster']['ansible_host'] }}"
     #     port: 6443
     #     timeout: 300
     #   delegate_to: localhost
 
     - name: Install K3s agent on workers
       shell: |
-        curl -sfL https://get.k3s.io | k3s_URL="https://{{ hostvars['k3s_master']['ansible_host'] }}:6443" k3s_TOKEN="{{ hostvars['k3s_master']['k3s_token_value'] }}" sh -
+        curl -sfL https://get.k3s.io | k3sURL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" k3sTOKEN="{{ hostvars['k3smaster']['k3stoken_value'] }}" sh -
       args:
         executable: /bin/bash
-      when: k3s_token_value is defined
+      when: k3stoken_value is defined
 
     - name: Ensure K3s agent service is running
       systemd:
-        name: k3s_agent
+        name: k3sagent
         state: restarted
         enabled: yes
         daemon_reload: yes
