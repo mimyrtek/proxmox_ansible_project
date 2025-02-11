@@ -38,6 +38,7 @@ pipeline {
                 ansiColor('xterm') {
                     script {
                         echo "Playbook: ${env.PLAYBOOK}"
+                        echo "HOST_NAME: ${env.HOST_NAME}"
                         // Construct the command string
                         def command = """
                        #!/bin/bash
