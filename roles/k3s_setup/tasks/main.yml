@@ -74,7 +74,13 @@
         regexp: '127\.0\.0\.1'
         replace: "{{ ansible_host }}"
       notify: Restart K3s
-      
+    - name: Replace 127.0.0.1 with master node IP in kubeconfig
+      replace:
+        path: ./kubeconfig
+        regexp: '127\.0\.0\.1'
+        replace: "{{ hostvars['k3smaster']['ansible_host'] }}"
+
+
     - name: Show kubeconfig for OpenLens
       command: cat ./kubeconfig
       delegate_to: localhost
