@@ -80,7 +80,7 @@
 
     - name: Ensure K3s agent service is running
       systemd:
-        name: k3sagent
+        name: k3s-agent
         state: restarted
         enabled: yes
         daemon_reload: yes
