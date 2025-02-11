@@ -74,18 +74,17 @@
 - name: Install K3s Worker Nodes
   when: "'k3snodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
   block:
-
- - name: Ensure required dependencies are installed
-     apt:
-       name: "{{ item }}"
-       state: present
-       update_cache: yes
-     loop:
-       - curl
-       - iptables
-       - socat
-       - conntrack
-       - firewalld
+    - name: Ensure required dependencies are installed
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - curl
+        - iptables
+        - socat
+        - conntrack
+        - firewalld
     # - name: Wait for K3s master to be ready
     #   become: yes
     #   wait_for:
