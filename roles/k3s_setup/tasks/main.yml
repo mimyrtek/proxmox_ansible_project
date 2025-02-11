@@ -67,7 +67,7 @@
 
     - name: Save K3s token for worker nodes
       command: cat /var/lib/rancher/k3s/server/node-token
-        register: k3s_token
+      register: k3s_token
       when: "'k3smaster' in inventory_hostname"
 
     - set_fact:
