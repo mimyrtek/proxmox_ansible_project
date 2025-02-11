@@ -28,11 +28,12 @@
 
     - name: Install K3s on master with correct IP
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_k3s-EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
+        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
       args:
         executable: /bin/bash
       register: k3s_master_installed
       changed_when: "'Already installed' not in k3s_master_installed.stdout"
+
 
     - name: Ensure K3s service is running
       systemd:
