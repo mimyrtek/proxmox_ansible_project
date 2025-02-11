@@ -78,10 +78,10 @@
 #     src: ~/.kube/config
 #     dest: ~/.kube/config.bak
 #     remote_src: yes
-- name: Write the updated kubeconfig back to file
-  delegate_to: localhost
-  become: no
-  copy:
-    content: "{{ updated_kubeconfig }}"
-    dest: ~/.kube/config
-    mode: '0600'
+# - name: Write the updated kubeconfig back to file
+  # delegate_to: localhost
+  # become: no
+  # copy:
+    # content: "{{ updated_kubeconfig }}"
+    # dest: ~/.kube/config
+    # mode: '0600'
