@@ -49,7 +49,7 @@
 
     - name: Save K3s token for worker nodes
       set_fact:
-        k3stoken_value: "{{ k3s_token.stdout }}"
+        k3s_token_value: "{{ k3s_token.stdout }}"
 
     - name: Ensure kubeconfig uses correct master IP
       replace:
@@ -72,10 +72,11 @@
 
     - name: Install K3s agent on workers
       shell: |
-        curl -sfL https://get.k3s.io | k3sURL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" k3sTOKEN="{{ hostvars['k3smaster']['k3stoken_value'] }}" sh -
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
+        
       args:
         executable: /bin/bash
-      when: k3stoken_value is defined
+      when: k3s_token_value is defined
 
     - name: Ensure K3s agent service is running
       systemd:
