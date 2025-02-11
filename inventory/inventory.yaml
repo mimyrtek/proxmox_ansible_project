@@ -14,17 +14,17 @@ all:
           ansible_host: 10.10.50.151
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-    k8-nodes:
+    k8nodes:
       hosts:
-        k8-node-1:
+        k8node1:
           ansible_host: 10.10.50.152
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k8-node-2:
+        k8node2:
           ansible_host: 10.10.50.153
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k8-node-3:
+        k8node3:
           ansible_host: 10.10.50.154
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
