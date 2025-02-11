@@ -44,7 +44,7 @@ pipeline {
                        #!/bin/bash
                        cd ansible-project
                        whoami
-                       ansible-playbook -i ./inventory/hosts.ini -v -b -l ${env.HOST_NAME} ./playbooks/${env.PLAYBOOK} -u ubuntu
+                       ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
                        """
                         echo "Executing command: ${command}" // Debugging
                         // Run the command
