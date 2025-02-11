@@ -1,5 +1,5 @@
 ---
 # defaults file for k3s-worker
-k3s_master: "k3s-master"
-k3s_token: "K10f10f8826ff53dc38f3ba1d442fdf256f6fd5922d6f723a30ebbdda8d58fe294c::server:zq295set"
+k3s_master: "10.10.50.151"
+k3s_token: "K10fa245200e177d83e403dcaffae21e5dd10cfc6c9815650c462382c8c3d6d3e76::10.10.50.151:zq295set"
 ansible_python_interpreter: /usr/bin/python3
