@@ -1,0 +1,87 @@
+---
+- name: Ensure required dependencies are installed
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - curl
+    - iptables
+    - socat
+    - conntrack
+    - firewalld
+
+
+- name: Disable Swap (K3s does not support swap)
+  command: swapoff -a
+  ignore_errors: yes
+
+- name: Disable Swap Permanently
+  replace:
+    path: /etc/fstab
+    regexp: '^(.*\sswap\s.*)$'
+    replace: '#\1'
+
+- name: Download and install K3s
+  shell: |
+    curl -sfL {{ k3s_install_url }} | INSTALL_K3S_VERSION={{ k3s_version }} K3S_TOKEN={{ k3s_token }} sh -s - server {{ k3s_server_options }} --flannel-backend=none --cluster-cidr=192.168.0.0/16 --disable-network-policy --disable=traefik
+    
+  args:
+    creates: /usr/local/bin/k3s
+
+- name: Enable and start K3s service
+  systemd:
+    name: k3s
+    state: started
+    enabled: yes
+
+- name: Ensure K3s is installed correctly
+  command: k3s kubectl get nodes
+  register: kubectl_output
+
+- name: Display K3s nodes
+  debug:
+    var: kubectl_output.stdout_lines
+
+- name: Display join command for worker nodes
+  shell: cat /var/lib/rancher/k3s/server/token
+  register: k3s_token_output
+
+- name: Show the command to join worker nodes
+  debug:
+    msg: "Worker nodes can join using the following command: k3s agent --server https://k3s-master.local.com:6443 --token {{ k3s_token_output.stdout }}"
+
+- name: Copy k3s.yaml from master node to local machine
+  fetch:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: /tmp/{{ inventory_hostname }}-k3s.yaml
+    flat: yes
+
+ 
+- name: Read the kubeconfig file
+  delegate_to: localhost
+  become: no
+  slurp:
+    src: /tmp/{{ inventory_hostname }}-k3s.yaml
+  register: kubeconfig_content
+
+- name: Replace 127.0.0.1 with FQDN
+  delegate_to: localhost
+  become: no
+  set_fact:
+    updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local.com') }}"
+
+- name: Backup the original kubeconfig file
+  delegate_to: localhost
+  become: no
+  copy:
+    src: ~/.kube/config
+    dest: ~/.kube/config.bak
+    remote_src: yes
+- name: Write the updated kubeconfig back to file
+  delegate_to: localhost
+  become: no
+  copy:
+    content: "{{ updated_kubeconfig }}"
+    dest: ~/.kube/config
+    mode: '0600'
