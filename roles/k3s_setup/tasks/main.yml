@@ -58,27 +58,27 @@
         replace: "{{ ansible_host }}"
       notify: Restart K3s
 
-# - name: Install K3s Worker Nodes
-#   when: "'k3snodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
-#   block:
+- name: Install K3s Worker Nodes
+  when: "'k3snodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
+  block:
 
-#     # - name: Wait for K3s master to be ready
-#     #   wait_for:
-#     #     host: "{{ hostvars['k3smaster']['ansible_host'] }}"
-#     #     port: 6443
-#     #     timeout: 300
-#     #   delegate_to: localhost
+    - name: Wait for K3s master to be ready
+      wait_for:
+        host: "{{ hostvars['k3smaster']['ansible_host'] }}"
+        port: 6443
+        timeout: 300
+      delegate_to: localhost
 
-#     - name: Install K3s agent on workers
-#       shell: |
-#         curl -sfL https://get.k3s.io | k3sURL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" k3sTOKEN="{{ hostvars['k3smaster']['k3stoken_value'] }}" sh -
-#       args:
-#         executable: /bin/bash
-#       when: k3stoken_value is defined
+    - name: Install K3s agent on workers
+      shell: |
+        curl -sfL https://get.k3s.io | k3sURL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" k3sTOKEN="{{ hostvars['k3smaster']['k3stoken_value'] }}" sh -
+      args:
+        executable: /bin/bash
+      when: k3stoken_value is defined
 
-#     - name: Ensure K3s agent service is running
-#       systemd:
-#         name: k3sagent
-#         state: restarted
-#         enabled: yes
-#         daemon_reload: yes
+    - name: Ensure K3s agent service is running
+      systemd:
+        name: k3sagent
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
