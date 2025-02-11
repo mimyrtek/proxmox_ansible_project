@@ -49,7 +49,7 @@
 
     - name: Save K3s token for worker nodes
       set_fact:
-        k3stoken_value: "{{ k3stoken.stdout }}"
+        k3stoken_value: "{{ k3s_token.stdout }}"
 
     - name: Ensure kubeconfig uses correct master IP
       replace:
