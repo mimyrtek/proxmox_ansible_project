@@ -85,6 +85,25 @@
         - socat
         - conntrack
         - firewalld
+
+    - name: Set fact for K3s token
+      set_fact:
+      k3s_token_value: "{{ k3s_token.stdout }}"
+      when: "'k3smaster' in inventory_hostname"
+
+    - name: Install K3s agent on worker nodes
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_default_ipv4']['address'] }}:6443" K3S_TOKEN="{{ k3s_token_value }}" sh -
+      args:
+        creates: /etc/systemd/system/k3s-agent.service
+      when: "'k3snodes' in group_names"
+    
+    - name: Ensure K3s agent service is running
+      systemd:
+        name: k3s-agent
+        enabled: yes
+        state: started
+      when: "'k3snodes' in group_names"
     # - name: Wait for K3s master to be ready
     #   become: yes
     #   wait_for:
@@ -93,17 +112,17 @@
     #     timeout: 300
     #   delegate_to: localhost
 
-    - name: Install K3s agent on workers
-      shell: |
-        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
+    # - name: Install K3s agent on workers
+    #   shell: |
+    #     curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
         
-      args:
-        executable: /bin/bash
-      when: k3s_token_value is defined
+    #   args:
+    #     executable: /bin/bash
+    #   when: k3s_token_value is defined
 
-    - name: Ensure K3s agent service is running
-      systemd:
-        name: k3s-agent
-        state: restarted
-        enabled: yes
-        daemon_reload: yes
+    # - name: Ensure K3s agent service is running
+    #   systemd:
+    #     name: k3s-agent
+    #     state: restarted
+    #     enabled: yes
+    #     daemon_reload: yes
