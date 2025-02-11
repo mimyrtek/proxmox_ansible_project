@@ -4,3 +4,4 @@
   become: yes
   roles:
     - { role: firewall, tags: firewall }
+    - { role: k3s-nodes, tags: k3s-nodes }
