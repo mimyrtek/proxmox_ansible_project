@@ -1,4 +1,4 @@
-- hosts: k3s-master:k3s-nodes
+- hosts: k3smaster:k3snodes
   become: yes
   roles:
      - { role: firewall, tags: firewall }
