@@ -85,11 +85,16 @@
         - socat
         - conntrack
         - firewalld
+    
 
     - name: Set fact for K3s token
       set_fact:
         k3s_token_value: "{{ k3s_token.stdout }}"
       when: "'k3smaster' in inventory_hostname"
+
+    - name: DEBUG
+      msg: "{{ k3s_token_value}}"
+
 
     - name: Install K3s agent on worker nodes
       shell: |
