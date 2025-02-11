@@ -28,11 +28,11 @@
 
     - name: Install K3s on master with correct IP
       shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
+        curl -sfL https://get.k3s.io | INSTALL_k3s-EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
       args:
         executable: /bin/bash
-      register: k3s_master_installed
-      changed_when: "'Already installed' not in k3s_master_installed.stdout"
+      register: k3s-master_installed
+      changed_when: "'Already installed' not in k3s-master_installed.stdout"
 
     - name: Ensure K3s service is running
       systemd:
@@ -43,12 +43,12 @@
 
     - name: Get K3s token from master
       command: cat /var/lib/rancher/k3s/server/node-token
-      register: k3s_token
+      register: k3s-token
       changed_when: false
 
     - name: Save K3s token for worker nodes
       set_fact:
-        k3s_token_value: "{{ k3s_token.stdout }}"
+        k3s-token_value: "{{ k3s-token.stdout }}"
 
     - name: Ensure kubeconfig uses correct master IP
       replace:
@@ -70,10 +70,10 @@
 
     - name: Install K3s agent on workers
       shell: |
-        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3s-master']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3s-master']['k3s_token_value'] }}" sh -
+        curl -sfL https://get.k3s.io | k3s-URL="https://{{ hostvars['k3s-master']['ansible_host'] }}:6443" k3s-TOKEN="{{ hostvars['k3s-master']['k3s-token_value'] }}" sh -
       args:
         executable: /bin/bash
-      when: k3s_token_value is defined
+      when: k3s-token_value is defined
 
     - name: Ensure K3s agent service is running
       systemd:
