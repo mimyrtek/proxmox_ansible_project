@@ -1,4 +1,3 @@
- 
 # - hosts: k3s-master   
 #   roles: 
 #     - { role: firewall, tags: firewall }
@@ -9,7 +8,7 @@
 #   roles:
 #     - { role: firewall, tags: firewall }
 #     - { role: k3s-nodes, tags: k3s-nodes }
-hosts: k3s-master:k3s-nodes
+- hosts: k3s-master:k3s-nodes
   vars:
     ansible_python_interpreter: /usr/bin/python3
 
