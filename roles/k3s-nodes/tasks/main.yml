@@ -1,0 +1,27 @@
+---
+- name: Ensure qemu-guest-agent is installed
+  package:
+    name: qemu-guest-agent
+    state: present
+
+- name: Ensure qemu-guest-agent service is enabled and started
+  systemd:
+    name: qemu-guest-agent
+    enabled: yes
+    state: started
+
+# tasks file for k3s-worker
+- name: Print the k3s_master variable from vars file
+  debug:
+    msg: "{{ k3s_master }}"
+
+- name: Print the k3s_token variable from vars file
+  debug:
+    msg: "{{ k3s_token }}"
+    
+- name: Install K3s worker
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master }}:6443 K3S_TOKEN={{ k3s_token }} sh -
+    
+  args:
+    creates: /usr/local/bin/k3s
