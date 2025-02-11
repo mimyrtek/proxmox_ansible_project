@@ -1,0 +1,33 @@
+---
+# tasks file for k3s_setup
+- name: Install K3s Master
+  when: "'k3s-master' in inventory_hostname"
+  block:
+
+    - name: Install K3s on master
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
+      args:
+        executable: /bin/bash
+      register: k3s_master_installed
+      changed_when: "'Already installed' not in k3s_master_installed.stdout"
+
+    - name: Get K3s token from master
+      command: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+      changed_when: false
+
+    - name: Save K3s token for worker nodes
+      set_fact:
+        k3s_token_value: "{{ k3s_token.stdout }}"
+
+- name: Install K3s Worker Nodes
+  when: "'k3s-node' in inventory_hostname"
+  block:
+
+    - name: Install K3s agent on workers
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3s-master']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3s-master']['k3s_token_value'] }}" sh -
+      args:
+        executable: /bin/bash
+      when: k3s_token_value is defined

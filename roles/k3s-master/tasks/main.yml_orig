@@ -49,7 +49,7 @@
 
 - name: Show the command to join worker nodes
   debug:
-    msg: "Worker nodes can join using the following command: k3s agent --server https://k3s-master.local.com:6443 --token {{ k3s_token_output.stdout }}"
+    msg: "Worker nodes can join using the following command: k3s agent --server https://k3s-master.local:6443 --token {{ k3s_token_output.stdout }}"
 
 - name: Copy k3s.yaml from master node to local machine
   fetch:
