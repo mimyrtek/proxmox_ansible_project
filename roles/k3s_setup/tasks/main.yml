@@ -63,6 +63,7 @@
   block:
 
     - name: Wait for K3s master to be ready
+      become: yes
       wait_for:
         host: "{{ hostvars['k3smaster']['ansible_host'] }}"
         port: 6443
