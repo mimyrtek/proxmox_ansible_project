@@ -64,6 +64,17 @@
       set_fact:
         k3s_token_value: "{{ k3s_token.stdout }}"
 
+
+    - name: Save K3s token for worker nodes
+      command: cat /var/lib/rancher/k3s/server/node-token
+        register: k3s_token
+      when: "'k3smaster' in inventory_hostname"
+
+    - set_fact:
+        k3s_token_value: "{{ k3s_token.stdout }}"
+      when: "'k3smaster' in inventory_hostname"
+    
+
     - name: Ensure kubeconfig uses correct master IP
       replace:
         path: /etc/rancher/k3s/k3s.yaml
