@@ -11,11 +11,7 @@ pipeline {
             choices: ['k3s_playbook.yaml'],
             description: 'Select the Ansible playbook to run'
         )
-        choice(
-            name: 'host_name',
-            choices: ['k3s-master','k3s-nodes'],
-            description: 'Select the target host from the inventory'
-        )
+        
     }
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'
@@ -44,7 +40,7 @@ pipeline {
                        #!/bin/bash
                        cd ansible-project
                        whoami
-                       ansible-playbook -i ./inventory/hosts.ini -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
+                       ansible-playbook -i ./inventory/inventory.yaml -v -b ./playbooks/${env.PLAYBOOK} -u ubuntu
                        """
                         echo "Executing command: ${command}" // Debugging
                         // Run the command
