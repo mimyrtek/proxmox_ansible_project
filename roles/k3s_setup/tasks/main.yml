@@ -62,13 +62,13 @@
   when: "'k3snodes' in group_names"  # ✅ Fix: Use 'group_names' instead of 'inventory_hostname'
   block:
 
-    - name: Wait for K3s master to be ready
-      become: yes
-      wait_for:
-        host: "{{ hostvars['k3smaster']['ansible_host'] }}"
-        port: 6443
-        timeout: 300
-      delegate_to: localhost
+    # - name: Wait for K3s master to be ready
+    #   become: yes
+    #   wait_for:
+    #     host: "{{ hostvars['k3smaster']['ansible_host'] }}"
+    #     port: 6443
+    #     timeout: 300
+    #   delegate_to: localhost
 
     - name: Install K3s agent on workers
       shell: |
