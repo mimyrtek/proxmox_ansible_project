@@ -1,16 +1,22 @@
 ---
-# tasks file for k3s_setup
 - name: Install K3s Master
   when: "'k3s-master' in inventory_hostname"
   block:
 
-    - name: Install K3s on master
+    - name: Install K3s on master with correct IP
       shell: |
-        curl -sfL https://get.k3s.io | sh -
+        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
       args:
         executable: /bin/bash
       register: k3s_master_installed
       changed_when: "'Already installed' not in k3s_master_installed.stdout"
+
+    - name: Ensure K3s service is running
+      systemd:
+        name: k3s
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
 
     - name: Get K3s token from master
       command: cat /var/lib/rancher/k3s/server/node-token
@@ -21,9 +27,23 @@
       set_fact:
         k3s_token_value: "{{ k3s_token.stdout }}"
 
+    - name: Ensure kubeconfig uses correct master IP
+      replace:
+        path: /etc/rancher/k3s/k3s.yaml
+        regexp: '127\.0\.0\.1'
+        replace: "{{ ansible_host }}"
+      notify: Restart K3s
+
 - name: Install K3s Worker Nodes
   when: "'k3s-node' in inventory_hostname"
   block:
+
+    - name: Wait for K3s master to be ready
+      wait_for:
+        host: "{{ hostvars['k3s-master']['ansible_host'] }}"
+        port: 6443
+        timeout: 300
+      delegate_to: localhost
 
     - name: Install K3s agent on workers
       shell: |
@@ -31,3 +51,10 @@
       args:
         executable: /bin/bash
       when: k3s_token_value is defined
+
+    - name: Ensure K3s agent service is running
+      systemd:
+        name: k3s-agent
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
