@@ -13,7 +13,7 @@ pipeline {
         )
         choice(
             name: 'host_name',
-            choices: ['k3s-master'],
+            choices: ['k3s-master','k3s-nodes'],
             description: 'Select the target host from the inventory'
         )
     }

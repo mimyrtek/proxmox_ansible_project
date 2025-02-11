@@ -9,7 +9,7 @@
     - { role: k3s-master, tags: k3s-master }
   
 
-#- hosts: k8_nodes
-#  roles:
-#    - { role: firewall, tags: firewall }
-#    - { role: k3s-nodes, tags: k3s-nodes }
+- hosts: k3s-nodes
+  roles:
+    - { role: firewall, tags: firewall }
+    - { role: k3s-nodes, tags: k3s-nodes }
