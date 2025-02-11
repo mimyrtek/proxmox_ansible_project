@@ -74,7 +74,15 @@
         regexp: '127\.0\.0\.1'
         replace: "{{ ansible_host }}"
       notify: Restart K3s
-
+      
+    - name: Show kubeconfig for OpenLens
+      command: cat ./kubeconfig
+      delegate_to: localhost
+      register: kubeconfig_content
+    
+    - name: Print kubeconfig for OpenLens
+      debug:
+        msg: "{{ kubeconfig_content.stdout_lines }}"
 # =======================
 # Install K3s Worker Nodes
 # =======================
@@ -116,3 +124,6 @@
         enabled: yes
         state: started
       when: k3s_token_value is defined
+
+
+
