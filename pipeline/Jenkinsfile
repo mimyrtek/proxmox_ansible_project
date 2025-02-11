@@ -8,12 +8,12 @@ pipeline {
         //choice(name: 'playbook', choices: ['install_vault.yaml'])
         choice(
             name: 'playbook',
-            choices: ['k3s_playbook.yaml','install_vault.yaml'],
+            choices: ['k3s_playbook.yaml'],
             description: 'Select the Ansible playbook to run'
         )
         choice(
             name: 'host_name',
-            choices: ['vault_server','k8_masters','k8_nodes'],
+            choices: ['k3s-master'],
             description: 'Select the target host from the inventory'
         )
     }
