@@ -92,8 +92,16 @@
         k3s_token_value: "{{ k3s_token.stdout }}"
       when: "'k3smaster' in inventory_hostname"
 
-    - name: DEBUG
-      msg: "{{ k3s_token_value}}"
+    - name: Debug K3s token
+      debug:
+        msg: "K3s token is {{ k3s_token_value }}"
+      when: "'k3smaster' in inventory_hostname"
+
+    - name: Debug K3s token availability on worker nodes
+      debug:
+        msg: "Worker node received K3s token: {{ k3s_token_value | default('NOT SET') }}"
+      when: "'k3snodes' in group_names"
+
 
 
     - name: Install K3s agent on worker nodes
