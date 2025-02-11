@@ -1,0 +1,8 @@
+---
+# tasks file for firewall
+- name: Stop and disable firewalld service
+  ansible.builtin.systemd:
+    name: firewalld
+    state: stopped
+    enabled: no
+  ignore_errors: yes  
