@@ -1,4 +1,5 @@
 ---
+plugin: yaml
 all:
   hosts: {}
   children:
