@@ -71,13 +71,13 @@
   set_fact:
     updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local.com') }}"
 
-- name: Backup the original kubeconfig file
-  delegate_to: localhost
-  become: no
-  copy:
-    src: ~/.kube/config
-    dest: ~/.kube/config.bak
-    remote_src: yes
+# - name: Backup the original kubeconfig file
+#   delegate_to: localhost
+#   become: no
+#   copy:
+#     src: ~/.kube/config
+#     dest: ~/.kube/config.bak
+#     remote_src: yes
 - name: Write the updated kubeconfig back to file
   delegate_to: localhost
   become: no
