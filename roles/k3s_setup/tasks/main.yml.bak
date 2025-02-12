@@ -74,6 +74,8 @@
         regexp: '127\.0\.0\.1'
         replace: "{{ ansible_host }}"
       notify: Restart K3s
+
+
     - name: Replace 127.0.0.1 with master node IP in kubeconfig
       replace:
         path: ./kubeconfig
