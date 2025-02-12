@@ -26,12 +26,12 @@
   import_tasks: debug_token.yaml
   when: inventory_hostname in groups['k3smaster']
 
-- name: Install K3s on Worker Nodes
-  import_tasks: install_k3s_workers.yaml
-  when: inventory_hostname in groups['k3snodes']
-
 - name: Distribute K3s Token to Worker Nodes
   import_tasks: distribute_token.yaml
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Install K3s on Worker Nodes
+  import_tasks: install_k3s_workers.yaml
   when: inventory_hostname in groups['k3snodes']
 
 - name: Debug - Verify Token on Worker Nodes
