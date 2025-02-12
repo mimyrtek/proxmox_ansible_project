@@ -20,7 +20,7 @@
     msg: "{{ k3s_token }}"
     
 - name: Remove existing K3s worker installation
-  shell: /usr/local/bin/k3s-uninstall.sh
+  shell: /usr/local/bin/k3s-agent-uninstall.sh
   args:
     removes: /usr/local/bin/k3s
 
