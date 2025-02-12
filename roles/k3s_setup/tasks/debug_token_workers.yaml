@@ -1,0 +1,9 @@
+---
+# debug_token_workers.yaml - Verify token on worker nodes
+- name: Debug - Verify Token on Worker Nodes
+  command: cat /var/lib/rancher/k3s/server/node-token
+  register: worker_token
+
+- name: Debug - Show Worker Node Token
+  debug:
+    msg: "Worker node received K3s token: {{ worker_token.stdout }}"

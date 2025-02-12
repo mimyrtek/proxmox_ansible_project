@@ -1,18 +1,9 @@
 ---
-- name: Ensure K3s directory exists on Worker Nodes
-  file:
-    path: "/var/lib/rancher/k3s/server"
-    state: directory
-    owner: root
-    group: root
-    mode: "0755"
-  when: inventory_hostname in groups['k3snodes']
-
+# distribute_token.yaml - Copy token to worker nodes
 - name: Copy K3s Token to Worker Nodes
   copy:
     src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
     dest: "/var/lib/rancher/k3s/server/node-token"
     owner: root
     group: root
-    mode: "0600"
-  when: inventory_hostname in groups['k3snodes']
+    mode: '0600'

@@ -1,9 +1,4 @@
 ---
-- name: Install K3s on the Master Node
-  shell: |
-    curl -sfL https://get.k3s.io | sh -s - server \
-      --node-label node-role.kubernetes.io/master=true \
-      --write-kubeconfig-mode 644
-  args:
-    creates: /etc/rancher/k3s/k3s.yaml
-  when: inventory_hostname in groups['k3smaster']
+# install_k3s_master.yaml - Install K3s on master
+- name: Install K3s on Master
+  shell: "curl -sfL https://get.k3s.io | sh -s - server --disable traefik"

@@ -1,0 +1,7 @@
+---
+# firewall.yaml - Disable firewall on all nodes
+- name: Stop firewalld service
+  systemd:
+    name: firewalld
+    state: stopped
+    enabled: no

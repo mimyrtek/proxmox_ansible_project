@@ -1,0 +1,6 @@
+---
+# save_token.yaml - Save the token for Jenkins
+- name: Save K3s Token to Jenkins Workspace
+  copy:
+    content: "{{ k3s_token.stdout }}"
+    dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"

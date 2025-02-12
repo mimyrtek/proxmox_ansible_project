@@ -1,0 +1,4 @@
+---
+# install_k3s_workers.yaml - Install K3s on worker nodes
+- name: Install K3s on Worker Nodes
+  shell: "curl -sfL https://get.k3s.io | K3S_URL=https://{{ groups['k3smaster'][0] }}:6443 K3S_TOKEN={{ lookup('file', '/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local') }} sh -s -"
