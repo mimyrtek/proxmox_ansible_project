@@ -15,8 +15,10 @@
   delegate_to: 10.10.50.151
   slurp:
     src: /var/lib/rancher/k3s/server/node-token
-  register: slurped_file
 
+  register: slurped_file
+- name : debug
+    msg: "{{ slurped_file }}"
 # tasks file for k3s-worker
 # - name: Print the k3s_master variable from vars file
 #   debug:
