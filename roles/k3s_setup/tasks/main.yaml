@@ -10,9 +10,13 @@
   import_tasks: install_k3s_master.yaml
   when: inventory_hostname in groups['k3smaster']
 
-# - name: Retrieve K3s Token from Master
-#   import_tasks: retrieve_token.yaml
-#   when: inventory_hostname in groups['k3smaster']
+- name: Install K3s on Worker Nodes
+  import_tasks: install_k3s_workers.yaml
+  when: inventory_hostname in groups['k3snodes']  
+
+- name: Retrieve K3s Token from Master
+  import_tasks: retrieve_token.yaml
+  when: inventory_hostname in groups['k3smaster']
 
 # - name: Save K3s Token to Jenkins Workspace
 #   import_tasks: save_token.yaml
@@ -26,9 +30,7 @@
 #   import_tasks: debug_token.yaml
 #   when: inventory_hostname in groups['k3smaster']
 
-- name: Install K3s on Worker Nodes
-  import_tasks: install_k3s_workers.yaml
-  when: inventory_hostname in groups['k3snodes']
+
 
 # - name: Distribute K3s Token to Worker Nodes
 #   import_tasks: distribute_token.yaml
