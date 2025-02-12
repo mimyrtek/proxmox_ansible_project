@@ -1,0 +1,135 @@
+---
+# ===========================
+# K3s Installation Playbook
+# ===========================
+# This Ansible playbook sets up a K3s cluster, including:
+# - Installing K3s master and agents
+# - Configuring networking and dependencies
+# - Fetching and displaying the kubeconfig for OpenLens integration
+# ===========================
+
+# ---------------------------------
+# Ensure Required Dependencies
+# ---------------------------------
+- name: Install required dependencies
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  loop:
+    - curl
+    - iptables
+    - socat
+    - conntrack
+    - firewalld
+
+# ---------------------------------
+# Disable Swap (K3s does not support swap)
+# ---------------------------------
+- name: Disable Swap Temporarily
+  command: swapoff -a
+  ignore_errors: yes
+
+- name: Disable Swap Permanently
+  replace:
+    path: /etc/fstab
+    regexp: '^(.*\sswap\s.*)$'
+    replace: '#\1'
+
+# ===============================
+# K3s MASTER NODE SETUP
+# ===============================
+- name: Install K3s Master
+  when: "'k3smaster' in inventory_hostname"
+  block:
+    
+    - name: Install K3s on Master
+      shell: |
+        curl -sfL https://get.k3s.io | INSTALL_k3s_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
+      args:
+        executable: /bin/bash
+      register: k3s_master_installed
+      changed_when: "'Already installed' not in k3s_master_installed.stdout"
+
+    - name: Ensure K3s service is running
+      systemd:
+        name: k3s
+        state: restarted
+        enabled: yes
+        daemon_reload: yes
+
+    # ---------------------------------
+    # Fetch and Save K3s Token for Worker Nodes
+    # ---------------------------------
+    - name: Retrieve K3s Token from Master
+      command: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+      changed_when: false
+
+    - name: Store K3s Token as a Fact
+      set_fact:
+        k3s_token_value: "{{ k3s_token.stdout }}"
+
+    # ---------------------------------
+    # Update kubeconfig to Use Correct IP
+    # ---------------------------------
+    - name: Ensure kubeconfig uses correct master IP
+      replace:
+        path: /etc/rancher/k3s/k3s.yaml
+        regexp: '127\.0\.0\.1'
+        replace: "{{ ansible_host }}"
+      notify: Restart K3s
+
+# ===============================
+# K3s WORKER NODE SETUP
+# ===============================
+- name: Install K3s Worker Nodes
+  when: "'k3snodes' in group_names"
+  block:
+    - name: Debug K3s Token Availability on Worker Nodes
+      debug:
+        msg: "Worker node received K3s token: {{ k3s_token_value | default('NOT SET') }}"
+
+    - name: Ensure Required Dependencies on Workers
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      loop:
+        - curl
+        - iptables
+        - socat
+        - conntrack
+        - firewalld
+
+    # ---------------------------------
+    # Install K3s Agent on Worker Nodes
+    # ---------------------------------
+    - name: Install K3s Agent on Worker Nodes
+      shell: |
+        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
+      args:
+        executable: /bin/bash
+      when: k3s_token_value is defined
+
+    # ---------------------------------
+    # Ensure K3s Agent is Running
+    # ---------------------------------
+    - name: Ensure K3s Agent Service is Running
+      systemd:
+        name: k3s-agent
+        state: started
+        enabled: yes
+
+# ===============================
+# DISPLAY KUBECONFIG FOR OPENLENS
+# ===============================
+- name: Fetch K3s Kubeconfig from Master Node
+  command: cat /etc/rancher/k3s/k3s.yaml
+  register: kubeconfig_content
+  when: "'k3smaster' in inventory_hostname"
+
+- name: Display Kubeconfig in Pipeline Console
+  debug:
+    msg: "{{ kubeconfig_content.stdout }}"
+  when: "'k3smaster' in inventory_hostname"
