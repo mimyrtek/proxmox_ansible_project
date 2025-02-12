@@ -1,24 +1,24 @@
-- name: Retrieve K3s Token from Jenkins Server
-  copy:
-    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
-    dest: "/var/lib/rancher/k3s/server/node-token"
-    mode: "0600"
-  when: inventory_hostname in groups['k3snodes']
+# - name: Retrieve K3s Token from Jenkins Server
+#   copy:
+#     src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
+#     dest: "/var/lib/rancher/k3s/server/node-token"
+#     mode: "0600"
+#   when: inventory_hostname in groups['k3snodes']
 
-- name: Debug - Check Retrieved K3s Token
-  command: "cat /var/lib/rancher/k3s/server/node-token"
-  register: worker_token
-  changed_when: false
-  when: inventory_hostname in groups['k3snodes']
+# - name: Debug - Check Retrieved K3s Token
+#   command: "cat /var/lib/rancher/k3s/server/node-token"
+#   register: worker_token
+#   changed_when: false
+#   when: inventory_hostname in groups['k3snodes']
 
-- name: Debug - Show Token Retrieved by Worker Nodes
-  debug:
-    msg: "Worker node {{ inventory_hostname }} has token: {{ worker_token.stdout }}"
-  when: inventory_hostname in groups['k3snodes']
+# - name: Debug - Show Token Retrieved by Worker Nodes
+#   debug:
+#     msg: "Worker node {{ inventory_hostname }} has token: {{ worker_token.stdout }}"
+#   when: inventory_hostname in groups['k3snodes']
 
 - name: Join Worker Nodes to K3s Master
   shell: |
-    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_default_ipv4']['address'] }}:6443" K3S_TOKEN="$(cat /var/lib/rancher/k3s/server/node-token)" sh -
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_default_ipv4']['address'] }}:6443" K3S_TOKEN="$(cat /var/lib/rancher/k3s/agent/node-token)" sh -
   args:
     executable: /bin/bash
   when: inventory_hostname in groups['k3snodes']
