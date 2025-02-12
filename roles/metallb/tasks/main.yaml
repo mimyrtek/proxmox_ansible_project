@@ -1,5 +1,5 @@
 ---
----
+
 - name: Install required dependencies (Python & Kubernetes libraries)
   ansible.builtin.import_tasks: dependencies.yml
 
