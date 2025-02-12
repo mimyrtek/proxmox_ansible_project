@@ -34,9 +34,9 @@
   import_tasks: distribute_token.yaml
   when: inventory_hostname in groups['k3snodes']
 
-# - name: Debug - Verify Token on Worker Nodes
-#   import_tasks: debug_token_workers.yaml
-#   when: inventory_hostname in groups['k3snodes']
+- name: Debug - Verify Token on Worker Nodes
+  import_tasks: debug_token_workers.yaml
+  when: inventory_hostname in groups['k3snodes']
 
 # - name: Deploy MetalLB
 #   import_tasks: deploy_metallb.yaml
