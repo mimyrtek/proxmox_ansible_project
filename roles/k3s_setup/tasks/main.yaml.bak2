@@ -1,0 +1,73 @@
+---
+### =============================
+###  RETRIEVE K3S TOKEN ON MASTER
+### =============================
+
+- name: Retrieve K3s Token from Master
+  shell: "cat /var/lib/rancher/k3s/server/node-token"
+  register: k3s_token
+  changed_when: false
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Show Retrieved K3s Token from Master
+  debug:
+    msg: "K3s token on master: {{ k3s_token.stdout }}"
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Save K3s Token to Jenkins Workspace on Master
+  copy:
+    content: "{{ k3s_token.stdout }}"
+    dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Confirm K3s Token File Exists on Master
+  stat:
+    path: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
+  register: token_stat
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Token File Exists on Master?
+  debug:
+    msg: "K3s token file exists on master: {{ token_stat.stat.exists }}"
+  when: inventory_hostname in groups['k3smaster']
+
+### =============================
+###  FETCH TOKEN TO JENKINS SERVER (Control Node)
+### =============================
+
+- name: Fetch K3s Token to Jenkins Control Node
+  fetch:
+    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
+    dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
+    flat: yes
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Show Token Retrieved by Jenkins
+  debug:
+    msg: "Jenkins retrieved K3s token: {{ lookup('file', '/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local') }}"
+  run_once: true
+  delegate_to: localhost
+
+### =============================
+###  DISTRIBUTE TOKEN TO WORKER NODES
+### =============================
+
+- name: Copy K3s Token to Worker Nodes
+  copy:
+    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
+    dest: "/var/lib/rancher/k3s/server/node-token"
+    owner: root
+    group: root
+    mode: "0600"
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Confirm Token Presence on Worker Nodes
+  stat:
+    path: "/var/lib/rancher/k3s/server/node-token"
+  register: worker_token_stat
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Worker Node Token File Exists?
+  debug:
+    msg: "Worker node {{ inventory_hostname }} has K3s token: {{ worker_token_stat.stat.exists }}"
+  when: inventory_hostname in groups['k3snodes']

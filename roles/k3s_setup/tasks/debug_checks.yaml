@@ -1,0 +1,22 @@
+---
+- name: Debug - Confirm K3s Token File Exists on Master
+  stat:
+    path: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
+  register: token_stat
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Token File Exists on Master?
+  debug:
+    msg: "K3s token file exists on master: {{ token_stat.stat.exists }}"
+  when: inventory_hostname in groups['k3smaster']
+
+- name: Debug - Confirm Token Presence on Worker Nodes
+  stat:
+    path: "/var/lib/rancher/k3s/server/node-token"
+  register: worker_token_stat
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Worker Node Token File Exists?
+  debug:
+    msg: "Worker node {{ inventory_hostname }} has K3s token: {{ worker_token_stat.stat.exists }}"
+  when: inventory_hostname in groups['k3snodes']
