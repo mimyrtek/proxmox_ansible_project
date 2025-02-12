@@ -1,5 +1,5 @@
 - name: Fetch K3s Token to Jenkins Control Node
   fetch:
-    src: "/tmp/k3s_token"
+    src: "/tmp/k3s_token_local"
     dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
     flat: yes

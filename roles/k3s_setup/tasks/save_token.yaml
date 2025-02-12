@@ -3,4 +3,4 @@
 - name: Save K3s Token to Jenkins Workspace
   copy:
     content: "{{ k3s_token.stdout }}"
-    dest: "/tmp/k3s_token"
+    dest: "/tmp/k3s_token_local"

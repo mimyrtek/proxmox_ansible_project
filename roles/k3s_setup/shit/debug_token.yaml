@@ -1,5 +1,0 @@
----
-# debug_token.yaml - Debug the token on master
-- name: Debug - Show Retrieved K3s Token
-  debug:
-    msg: "K3s token on master: {{ k3s_token.stdout }}"
