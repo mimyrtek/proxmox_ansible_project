@@ -1,10 +1,46 @@
+# ---
+
+# - name: Install required dependencies (Python & Kubernetes libraries)
+#   ansible.builtin.import_tasks: dependencies.yaml
+
+# - name: Install MetalLB
+#   ansible.builtin.import_tasks: install.yaml
+
+# - name: Configure MetalLB
+#   ansible.builtin.import_tasks: configure.yaml
 ---
+- name: Install MetalLB only on the master node
+  hosts: k3smaster
+  become: true
+  tasks:
+    - name: Create MetalLB namespace
+      ansible.builtin.command:
+        cmd: k3s kubectl create namespace metallb-system --dry-run=client -o yaml | k3s kubectl apply -f -
+      register: namespace_creation
+      failed_when: namespace_creation.rc != 0
 
-- name: Install required dependencies (Python & Kubernetes libraries)
-  ansible.builtin.import_tasks: dependencies.yaml
+    - name: Deploy MetalLB components
+      ansible.builtin.command:
+        cmd: k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
+      register: metallb_deploy
+      failed_when: metallb_deploy.rc != 0
 
-- name: Install MetalLB
-  ansible.builtin.import_tasks: install.yaml
+    - name: Wait for MetalLB pods to be running
+      ansible.builtin.command:
+        cmd: k3s kubectl get pods -n metallb-system
+      register: metallb_pods
+      until: "'Running' in metallb_pods.stdout"
+      retries: 10
+      delay: 10
 
-- name: Configure MetalLB
-  ansible.builtin.import_tasks: configure.yaml
+    - name: Generate MetalLB ConfigMap file
+      ansible.builtin.template:
+        src: metallb-config.yaml.j2
+        dest: /tmp/metallb-config.yaml
+      become: true
+
+    - name: Apply MetalLB ConfigMap
+      ansible.builtin.command:
+        cmd: k3s kubectl apply -f /tmp/metallb-config.yaml
+      register: configmap_apply
+      failed_when: configmap_apply.rc != 0
