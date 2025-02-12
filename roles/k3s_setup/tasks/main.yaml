@@ -10,37 +10,37 @@
   import_tasks: install_k3s_master.yaml
   when: inventory_hostname in groups['k3smaster']
 
-- name: Retrieve K3s Token from Master
-  import_tasks: retrieve_token.yaml
-  when: inventory_hostname in groups['k3smaster']
+# - name: Retrieve K3s Token from Master
+#   import_tasks: retrieve_token.yaml
+#   when: inventory_hostname in groups['k3smaster']
 
-- name: Save K3s Token to Jenkins Workspace
-  import_tasks: save_token.yaml
-  when: inventory_hostname in groups['k3smaster']
+# - name: Save K3s Token to Jenkins Workspace
+#   import_tasks: save_token.yaml
+#   when: inventory_hostname in groups['k3smaster']
 
-- name: Fetch K3s Token to Jenkins Server
-  import_tasks: fetch_token.yaml
-  when: inventory_hostname in groups['k3smaster']
+# - name: Fetch K3s Token to Jenkins Server
+#   import_tasks: fetch_token.yaml
+#   when: inventory_hostname in groups['k3smaster']
 
-- name: Debug - Show Retrieved K3s Token
-  import_tasks: debug_token.yaml
-  when: inventory_hostname in groups['k3smaster']
+# - name: Debug - Show Retrieved K3s Token
+#   import_tasks: debug_token.yaml
+#   when: inventory_hostname in groups['k3smaster']
 
 - name: Install K3s on Worker Nodes
   import_tasks: install_k3s_workers.yaml
   when: inventory_hostname in groups['k3snodes']
 
-- name: Distribute K3s Token to Worker Nodes
-  import_tasks: distribute_token.yaml
-  when: inventory_hostname in groups['k3snodes']
+# - name: Distribute K3s Token to Worker Nodes
+#   import_tasks: distribute_token.yaml
+#   when: inventory_hostname in groups['k3snodes']
 
-- name: Join K3s Worker Nodes
-  import_tasks: join_worker_nodes.yaml
-  when: inventory_hostname in groups['k3snodes']
+# - name: Join K3s Worker Nodes
+#   import_tasks: join_worker_nodes.yaml
+#   when: inventory_hostname in groups['k3snodes']
 
-- name: Debug - Verify Token on Worker Nodes
-  import_tasks: debug_token_workers.yaml
-  when: inventory_hostname in groups['k3snodes']
+# - name: Debug - Verify Token on Worker Nodes
+#   import_tasks: debug_token_workers.yaml
+#   when: inventory_hostname in groups['k3snodes']
 
 # - name: Deploy MetalLB
 #   import_tasks: deploy_metallb.yaml
