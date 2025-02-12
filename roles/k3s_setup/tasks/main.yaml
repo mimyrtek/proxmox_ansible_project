@@ -31,10 +31,9 @@
 #   when: inventory_hostname in groups['k3smaster']
 
 
-
-# - name: Distribute K3s Token to Worker Nodes
-#   import_tasks: distribute_token.yaml
-#   when: inventory_hostname in groups['k3snodes']
+- name: Distribute K3s Token to Worker Nodes
+  import_tasks: distribute_token.yaml
+  when: inventory_hostname in groups['k3snodes']
 
 # - name: Join K3s Worker Nodes
 #   import_tasks: join_worker_nodes.yaml
