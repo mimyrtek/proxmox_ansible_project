@@ -17,7 +17,9 @@
     src: /var/lib/rancher/k3s/server/node-token
 
   register: slurped_file
-- name : debug
+
+- name: Debug
+  debug:
     msg: "{{ slurped_file }}"
 # tasks file for k3s-worker
 # - name: Print the k3s_master variable from vars file
