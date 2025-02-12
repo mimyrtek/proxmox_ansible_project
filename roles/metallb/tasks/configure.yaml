@@ -1,8 +1,20 @@
 ---
-- name: Apply MetalLB ConfigMap
-  ansible.builtin.shell: |
-    echo '{{ lookup("template", "metallb-config.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
+# - name: Apply MetalLB ConfigMap
+#   ansible.builtin.shell: |
+#     echo '{{ lookup("template", "metallb-config.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
 
-- name: Apply MetalLB Address Pool
-  ansible.builtin.shell: |
-    echo '{{ lookup("template", "metallb-address-pool.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
+# - name: Apply MetalLB Address Pool
+#   ansible.builtin.shell: |
+#     echo '{{ lookup("template", "metallb-address-pool.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
+
+- name: Generate MetalLB ConfigMap file
+  template:
+    src: metallb-config.yaml.j2
+    dest: /tmp/metallb-config.yaml
+  become: true
+
+- name: Apply MetalLB ConfigMap
+  ansible.builtin.command:
+    cmd: k3s kubectl apply -f /tmp/metallb-config.yaml
+  register: configmap_apply
+  failed_when: configmap_apply.rc != 0
