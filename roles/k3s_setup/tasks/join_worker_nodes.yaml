@@ -1,0 +1,38 @@
+- name: Retrieve K3s Token from Jenkins Server
+  copy:
+    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
+    dest: "/var/lib/rancher/k3s/server/node-token"
+    mode: "0600"
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Check Retrieved K3s Token
+  command: "cat /var/lib/rancher/k3s/server/node-token"
+  register: worker_token
+  changed_when: false
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Show Token Retrieved by Worker Nodes
+  debug:
+    msg: "Worker node {{ inventory_hostname }} has token: {{ worker_token.stdout }}"
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Join Worker Nodes to K3s Master
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_default_ipv4']['address'] }}:6443" K3S_TOKEN="$(cat /var/lib/rancher/k3s/server/node-token)" sh -
+  args:
+    executable: /bin/bash
+  when: inventory_hostname in groups['k3snodes']
+  register: join_result
+  failed_when: join_result.rc != 0
+
+- name: Debug - Verify Worker Node Join Status
+  command: "k3s kubectl get nodes"
+  delegate_to: k3smaster
+  register: nodes_status
+  changed_when: false
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Show Cluster Nodes
+  debug:
+    msg: "{{ nodes_status.stdout_lines }}"
+  when: inventory_hostname == "k3smaster"
