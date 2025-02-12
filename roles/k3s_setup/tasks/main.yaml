@@ -1,130 +1,116 @@
 ---
-# ===========================
-# K3s Installation Playbook
-# ===========================
+- name: Retrieve K3s Token from Master
+  command: cat /var/lib/rancher/k3s/server/node-token
+  register: k3s_token
+  changed_when: false
+  when: inventory_hostname == "k3smaster"
 
-# ---------------------------------
-# Ensure Required Dependencies
-# ---------------------------------
-- name: Install required dependencies
-  apt:
-    name: "{{ item }}"
+- name: Store K3s Token as a File on Master
+  copy:
+    content: "{{ k3s_token.stdout }}"
+    dest: "/tmp/k3s_token"
+    mode: '0644'
+  when: inventory_hostname == "k3smaster"
+
+- name: Fetch K3s Token from Master on Worker Nodes
+  command: cat /tmp/k3s_token
+  register: k3s_token
+  changed_when: false
+  delegate_to: k3smaster
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug K3s Token on Worker Nodes
+  debug:
+    msg: "Worker node received K3s token: {{ k3s_token.stdout | default('MISSING') }}"
+
+- name: Install Required Dependencies
+  package:
+    name:
+      - curl
+      - iptables
+      - socat
+      - conntrack
+      - firewalld
     state: present
-    update_cache: yes
-  loop:
-    - curl
-    - iptables
-    - socat
-    - conntrack
-    - firewalld
 
-# ---------------------------------
-# Disable Swap (K3s does not support swap)
-# ---------------------------------
 - name: Disable Swap Temporarily
   command: swapoff -a
-  ignore_errors: yes
+  changed_when: false
 
 - name: Disable Swap Permanently
-  replace:
+  lineinfile:
     path: /etc/fstab
-    regexp: '^(.*\sswap\s.*)$'
-    replace: '#\1'
+    regexp: '.*swap.*'
+    state: absent
 
-# ===============================
-# K3s MASTER NODE SETUP
-# ===============================
-- name: Install K3s Master
-  when: "'k3smaster' in inventory_hostname"
-  block:
-    
-    - name: Install K3s on Master
-      shell: |
-        curl -sfL https://get.k3s.io | INSTALL_k3s_EXEC="server --node-ip={{ ansible_host }} --tls-san={{ ansible_host }}" sh -
-      args:
-        executable: /bin/bash
-      register: k3s_master_installed
-      changed_when: "'Already installed' not in k3s_master_installed.stdout"
+- name: Install K3s on Master
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_default_ipv4.address }} --tls-san={{ ansible_default_ipv4.address }}" sh -
+  args:
+    executable: /bin/bash
+  when: inventory_hostname == "k3smaster"
 
-    - name: Ensure K3s service is running
-      systemd:
-        name: k3s
-        state: restarted
-        enabled: yes
-        daemon_reload: yes
+- name: Ensure K3s Service is Running (Master)
+  systemd:
+    name: k3s
+    enabled: yes
+    state: started
+  when: inventory_hostname == "k3smaster"
 
-    # ---------------------------------
-    # Fetch and Save K3s Token for Worker Nodes
-    # ---------------------------------
-    - name: Retrieve K3s Token from Master
-      command: cat /var/lib/rancher/k3s/server/node-token
-      register: k3s_token
-      changed_when: false
+- name: Install K3s Agent on Worker Nodes
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="$(cat /tmp/k3s_token)" sh -
+  args:
+    executable: /bin/bash
+  when: inventory_hostname in groups['k3snodes']
 
-    - name: Store K3s Token as a Fact
-      set_fact:
-        k3s_token_value: "{{ k3s_token.stdout }}"
+- name: Ensure K3s Agent Service is Running (Workers)
+  systemd:
+    name: k3s-agent
+    enabled: yes
+    state: started
+  when: inventory_hostname in groups['k3snodes']
 
-    # ---------------------------------
-    # Update kubeconfig to Use Correct IP
-    # ---------------------------------
-    - name: Ensure kubeconfig uses correct master IP
-      replace:
-        path: /etc/rancher/k3s/k3s.yaml
-        regexp: '127\.0\.0\.1'
-        replace: "{{ ansible_host }}"
-      notify: Restart K3s
+- name: Deploy MetalLB on Master
+  shell: |
+    k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
+  args:
+    executable: /bin/bash
+  when: inventory_hostname == "k3smaster"
 
-# ===============================
-# K3s WORKER NODE SETUP
-# ===============================
-- name: Install K3s Worker Nodes
-  when: "'k3snodes' in group_names"
-  block:
-    - name: Debug K3s Token Availability on Worker Nodes
-      debug:
-        msg: "Worker node received K3s token: {{ k3s_token_value | default('NOT SET') }}"
+- name: Wait for MetalLB Pods to be Running
+  shell: |
+    k3s kubectl get pods -n metallb-system
+  register: metallb_status
+  until: "'Running' in metallb_status.stdout"
+  retries: 10
+  delay: 10
+  when: inventory_hostname == "k3smaster"
 
-    - name: Ensure Required Dependencies on Workers
-      apt:
-        name: "{{ item }}"
-        state: present
-        update_cache: yes
-      loop:
-        - curl
-        - iptables
-        - socat
-        - conntrack
-        - firewalld
+- name: Generate MetalLB ConfigMap File
+  copy:
+    dest: "/tmp/metallb-config.yaml"
+    content: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        namespace: metallb-system
+        name: config
+      data:
+        config: |
+          address-pools:
+          - name: default
+            protocol: layer2
+            addresses:
+            - 192.168.1.100-192.168.1.200
+  when: inventory_hostname == "k3smaster"
 
-    # ---------------------------------
-    # Install K3s Agent on Worker Nodes
-    # ---------------------------------
-    - name: Install K3s Agent on Worker Nodes
-      shell: |
-        curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
-      args:
-        executable: /bin/bash
-      when: k3s_token_value is defined
+- name: Apply MetalLB ConfigMap
+  command: k3s kubectl apply -f /tmp/metallb-config.yaml
+  when: inventory_hostname == "k3smaster"
 
-    # ---------------------------------
-    # Ensure K3s Agent is Running
-    # ---------------------------------
-    - name: Ensure K3s Agent Service is Running
-      systemd:
-        name: k3s-agent
-        state: started
-        enabled: yes
-
-# ===============================
-# DISPLAY KUBECONFIG FOR OPENLENS
-# ===============================
-- name: Fetch K3s Kubeconfig from Master Node
-  command: cat /etc/rancher/k3s/k3s.yaml
-  register: kubeconfig_content
-  when: "'k3smaster' in inventory_hostname"
-
-- name: Display Kubeconfig in Pipeline Console
-  debug:
-    msg: "{{ kubeconfig_content.stdout }}"
-  when: "'k3smaster' in inventory_hostname"
+- name: Restart K3s
+  systemd:
+    name: k3s
+    state: restarted
+  when: inventory_hostname == "k3smaster"
