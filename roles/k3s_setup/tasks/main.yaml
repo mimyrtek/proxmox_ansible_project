@@ -1,45 +1,7 @@
 ---
-- name: Debug - Print Jenkins User and Workspace Directory
-  debug:
-    msg:
-      - "Running as user: {{ ansible_env.USER }}"
-      - "Jenkins workspace directory: {{ ansible_env.HOME }}/workspace/Install_kubernetes"
-
-- name: Ensure Required Dependencies are Installed
-  package:
-    name:
-      - curl
-      - iptables
-      - socat
-      - conntrack
-      - firewalld
-    state: present
-
-- name: Disable Swap Temporarily
-  command: swapoff -a
-  when: inventory_hostname in groups['k3smaster'] + groups['k3snodes']
-
-- name: Disable Swap Permanently
-  lineinfile:
-    path: /etc/fstab
-    regexp: 'swap'
-    state: absent
-
 ### =============================
-###  INSTALL K3S ON MASTER NODE
+###  RETRIEVE K3S TOKEN ON MASTER
 ### =============================
-
-- name: Install K3s on Master Node
-  shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_default_ipv4.address }} --tls-san={{ ansible_default_ipv4.address }}" sh -
-  when: inventory_hostname in groups['k3smaster']
-
-- name: Ensure K3s Service is Running on Master
-  systemd:
-    name: k3s
-    state: started
-    enabled: yes
-  when: inventory_hostname in groups['k3smaster']
 
 - name: Retrieve K3s Token from Master
   shell: "cat /var/lib/rancher/k3s/server/node-token"
@@ -52,43 +14,47 @@
     msg: "K3s token on master: {{ k3s_token.stdout }}"
   when: inventory_hostname in groups['k3smaster']
 
-- name: Save K3s Token to Jenkins Workspace
+- name: Save K3s Token to Jenkins Workspace on Master
   copy:
     content: "{{ k3s_token.stdout }}"
-    dest: "{{ ansible_env.HOME }}/workspace/Install_kubernetes/k3s_token"
+    dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
   when: inventory_hostname in groups['k3smaster']
 
-- name: Debug - Confirm K3s Token File on Jenkins Server
+- name: Debug - Confirm K3s Token File Exists on Master
   stat:
-    path: "{{ ansible_env.HOME }}/workspace/Install_kubernetes/k3s_token"
+    path: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
   register: token_stat
   when: inventory_hostname in groups['k3smaster']
 
-- name: Debug - Token File Exists?
+- name: Debug - Token File Exists on Master?
   debug:
-    msg: "K3s token file exists: {{ token_stat.stat.exists }}"
+    msg: "K3s token file exists on master: {{ token_stat.stat.exists }}"
   when: inventory_hostname in groups['k3smaster']
 
 ### =============================
-###  TRANSFER K3S TOKEN TO WORKER NODES
+###  FETCH TOKEN TO JENKINS SERVER (Control Node)
 ### =============================
 
-- name: Fetch K3s Token from Master to Jenkins
+- name: Fetch K3s Token to Jenkins Control Node
   fetch:
-    src: "{{ ansible_env.HOME }}/workspace/Install_kubernetes/k3s_token"
-    dest: "/tmp/k3s_token"
+    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token"
+    dest: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
     flat: yes
   when: inventory_hostname in groups['k3smaster']
 
 - name: Debug - Show Token Retrieved by Jenkins
   debug:
-    msg: "Jenkins retrieved K3s token: {{ lookup('file', '/tmp/k3s_token') }}"
+    msg: "Jenkins retrieved K3s token: {{ lookup('file', '/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local') }}"
   run_once: true
   delegate_to: localhost
 
-- name: Distribute K3s Token to Worker Nodes
+### =============================
+###  DISTRIBUTE TOKEN TO WORKER NODES
+### =============================
+
+- name: Copy K3s Token to Worker Nodes
   copy:
-    src: "/tmp/k3s_token"
+    src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
     dest: "/var/lib/rancher/k3s/server/node-token"
     owner: root
     group: root
@@ -105,23 +71,3 @@
   debug:
     msg: "Worker node {{ inventory_hostname }} has K3s token: {{ worker_token_stat.stat.exists }}"
   when: inventory_hostname in groups['k3snodes']
-
-### =============================
-###  INSTALL K3S ON WORKER NODES
-### =============================
-
-- name: Install K3s on Worker Nodes
-  shell: |
-    curl -sfL https://get.k3s.io | K3S_URL="https://{{ groups['k3smaster'][0] }}:6443" K3S_TOKEN="$(cat /var/lib/rancher/k3s/server/node-token)" sh -
-  when: inventory_hostname in groups['k3snodes']
-
-- name: Ensure K3s Service is Running on Workers
-  systemd:
-    name: k3s
-    state: started
-    enabled: yes
-  when: inventory_hostname in groups['k3snodes']
-
-- name: Debug - K3s Node Installation Complete
-  debug:
-    msg: "K3s installation complete on node: {{ inventory_hostname }}"
