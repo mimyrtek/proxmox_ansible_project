@@ -18,9 +18,10 @@
 
   register: slurped_file
 
-- name: Debug
+- name: Debug Slurped File Content
   debug:
-    msg: "{{ slurped_file }}"
+    msg: "{{ slurped_file['content'] | b64decode }}"
+
 # tasks file for k3s-worker
 # - name: Print the k3s_master variable from vars file
 #   debug:
