@@ -1,12 +1,57 @@
 ---
-- name: Deploy K3s with Jenkins Integration
-  include_tasks: retrieve_token.yaml
+# 1️⃣ Gather required facts
+- name: Gather system facts
+  setup:
 
+# 2️⃣ Stop and disable firewall
+#- name: Stop and disable firewalld service
+#  import_tasks: firewall.yaml
+
+# 3️⃣ Install K3s on the master node
+- name: Install K3s on the Master
+  import_tasks: install_k3s_master.yaml
+  when: inventory_hostname in groups['k3smaster']
+
+# 4️⃣ Retrieve K3s token from the master
+- name: Retrieve K3s Token from Master
+  import_tasks: retrieve_token.yaml
+  when: inventory_hostname in groups['k3smaster']
+
+# 5️⃣ Save the token for Jenkins
+- name: Save K3s Token to Jenkins Workspace
+  import_tasks: save_token.yaml
+  when: inventory_hostname in groups['k3smaster']
+
+# 6️⃣ Fetch K3s token to the Jenkins control node
 - name: Fetch K3s Token to Jenkins Server
-  include_tasks: fetch_token.yaml
+  import_tasks: fetch_token.yaml
+  when: inventory_hostname in groups['k3smaster']
 
+# 7️⃣ Debug to confirm token retrieval
+- name: Debug - Show Retrieved K3s Token
+  import_tasks: debug_token.yaml
+  when: inventory_hostname in groups['k3smaster']
+
+# 8️⃣ Install K3s on the worker nodes
+- name: Install K3s on Worker Nodes
+  import_tasks: install_k3s_workers.yaml
+  when: inventory_hostname in groups['k3snodes']
+
+# 9️⃣ Distribute K3s token to worker nodes
 - name: Distribute K3s Token to Worker Nodes
-  include_tasks: distribute_token.yaml
+  import_tasks: distribute_token.yaml
+  when: inventory_hostname in groups['k3snodes']
 
-- name: Debug and Verify Token on Worker Nodes
-  include_tasks: debug_checks.yaml
+# 🔟 Debug token on worker nodes
+- name: Debug - Verify Token on Worker Nodes
+  import_tasks: debug_token_workers.yaml
+  when: inventory_hostname in groups['k3snodes']
+
+# 1️⃣1️⃣ Deploy MetalLB
+- name: Deploy MetalLB
+  import_tasks: deploy_metallb.yaml
+  when: inventory_hostname in groups['k3smaster']
+
+# 1️⃣2️⃣ Verify the complete setup
+- name: Final verification of K3s installation
+  import_tasks: verify_install.yaml

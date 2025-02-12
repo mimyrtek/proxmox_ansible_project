@@ -1,0 +1,8 @@
+---
+- name: Install K3s on Worker Nodes
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_default_ipv4']['address'] }}:6443" \
+      K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
+  args:
+    creates: /etc/rancher/k3s/k3s.yaml
+  when: inventory_hostname in groups['k3snodes']
