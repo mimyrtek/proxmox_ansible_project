@@ -1,16 +1,6 @@
-# ---
-
-# - name: Install required dependencies (Python & Kubernetes libraries)
-#   ansible.builtin.import_tasks: dependencies.yaml
-
-# - name: Install MetalLB
-#   ansible.builtin.import_tasks: install.yaml
-
-# - name: Configure MetalLB
-#   ansible.builtin.import_tasks: configure.yaml
 ---
 - name: Install MetalLB only on the master node
-  hosts: k3smaster
+  hosts: k3s_master
   become: true
   tasks:
     - name: Create MetalLB namespace
