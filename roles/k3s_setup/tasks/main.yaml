@@ -34,13 +34,13 @@
   import_tasks: distribute_token.yaml
   when: inventory_hostname in groups['k3snodes']
 
-- name: Debug - Verify Token on Worker Nodes
-  import_tasks: debug_token_workers.yaml
-  when: inventory_hostname in groups['k3snodes']
+# - name: Debug - Verify Token on Worker Nodes
+#   import_tasks: debug_token_workers.yaml
+#   when: inventory_hostname in groups['k3snodes']
 
-- name: Deploy MetalLB
-  import_tasks: deploy_metallb.yaml
-  when: inventory_hostname in groups['k3smaster']
+# - name: Deploy MetalLB
+#   import_tasks: deploy_metallb.yaml
+#   when: inventory_hostname in groups['k3smaster']
 
-- name: Final verification of K3s installation
-  import_tasks: verify_install.yaml
+# - name: Final verification of K3s installation
+#   import_tasks: verify_install.yaml
