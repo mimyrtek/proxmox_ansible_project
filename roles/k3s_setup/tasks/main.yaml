@@ -1,158 +1,124 @@
 ---
-- name: Deploy K3s with Jenkins Integration
-  hosts: k3smaster:k3snodes
-  become: yes
-  vars:
-    workspace_dir: "{{ lookup('env', 'WORKSPACE') | default('/var/lib/jenkins/workspace/Install_kubernetes') }}"
-    token_file: "k3s_token"
-    k3s_server_ip: "10.10.50.151"
-
-  tasks:
-
-    - name: Debug - Print Jenkins Workspace Directory
-      debug:
-        msg: "Jenkins workspace directory is set to: {{ workspace_dir }}"
-
-    - name: Ensure Required Dependencies are Installed
-      package:
-        name:
-          - curl
-          - iptables
-          - socat
-          - conntrack
-          - firewalld
-        state: present
-
-    - name: Disable Swap Temporarily
-      command: swapoff -a
-      when: inventory_hostname in groups['k3smaster'] + groups['k3snodes']
-
-    - name: Disable Swap Permanently
-      lineinfile:
-        path: /etc/fstab
-        regexp: 'swap'
-        state: absent
-
-    - name: Install K3s on Master Node
-      shell: |
-        curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ k3s_server_ip }} --tls-san={{ k3s_server_ip }}" sh -
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Ensure K3s Service is Running on Master
-      systemd:
-        name: k3s
-        state: started
-        enabled: yes
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Retrieve K3s Token from Master
-      shell: "cat /var/lib/rancher/k3s/server/node-token"
-      register: k3s_token
+- name: Debug - Print Jenkins Workspace Directory
+  debug:
+    msg: "Jenkins workspace directory is set to: {{ workspace_dir }}"
+- name: Ensure Required Dependencies are Installed
+  package:
+    name:
+      - curl
+      - iptables
+      - socat
+      - conntrack
+      - firewalld
+    state: present
+- name: Disable Swap Temporarily
+  command: swapoff -a
+  when: inventory_hostname in groups['k3smaster'] + groups['k3snodes']
+- name: Disable Swap Permanently
+  lineinfile:
+    path: /etc/fstab
+    regexp: 'swap'
+    state: absent
+- name: Install K3s on Master Node
+  shell: |
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ k3s_server_ip }} --tls-san={{ k3s_server_ip }}" sh -
+  when: inventory_hostname in groups['k3smaster']
+- name: Ensure K3s Service is Running on Master
+  systemd:
+    name: k3s
+    state: started
+    enabled: yes
+  when: inventory_hostname in groups['k3smaster']
+- name: Retrieve K3s Token from Master
+  shell: "cat /var/lib/rancher/k3s/server/node-token"
+  register: k3s_token
+  changed_when: false
+  when: inventory_hostname in groups['k3smaster']
+- name: Debug - Show Retrieved K3s Token
+  debug:
+    msg: "K3s token on master: {{ k3s_token.stdout }}"
+  when: inventory_hostname in groups['k3smaster']
+- name: Save K3s Token to Jenkins Workspace
+  copy:
+    content: "{{ k3s_token.stdout }}"
+    dest: "{{ workspace_dir }}/{{ token_file }}"
+    mode: '0644'
+  when: inventory_hostname in groups['k3smaster'] and k3s_token.stdout is defined
+- name: Debug - Verify Token Exists in Jenkins Workspace
+  command: "ls -l {{ workspace_dir }}/{{ token_file }}"
+  register: jenkins_token_check
+  changed_when: false
+  when: inventory_hostname in groups['k3smaster']
+- name: Debug - Print Token File Details from Jenkins Workspace
+  debug:
+    var: jenkins_token_check.stdout_lines
+  when: inventory_hostname in groups['k3smaster']
+- name: Fetch K3s Token from Jenkins Server to Local
+  fetch:
+    src: "{{ workspace_dir }}/{{ token_file }}"
+    dest: "/tmp/{{ token_file }}"
+    flat: yes
+  delegate_to: localhost
+  when: inventory_hostname in groups['k3smaster']
+- name: Debug - Check Local Copy of Token on Jenkins Server
+  command: "ls -l /tmp/{{ token_file }}"
+  register: local_token_check
+  changed_when: false
+  when: inventory_hostname in groups['k3smaster']
+- name: Debug - Print Local Token File Details from Jenkins Server
+  debug:
+    var: local_token_check.stdout_lines
+  when: inventory_hostname in groups['k3smaster']
+- name: Distribute K3s Token to Worker Nodes
+  copy:
+    src: "/tmp/{{ token_file }}"
+    dest: "/tmp/{{ token_file }}"
+    mode: '0644'
+  when: inventory_hostname in groups['k3snodes']
+- name: Debug - Check Token File on Worker Nodes
+  command: "ls -l /tmp/{{ token_file }}"
+  register: worker_token_check
+  changed_when: false
+  when: inventory_hostname in groups['k3snodes']
+- name: Debug - Print Worker Node Token File Details
+  debug:
+    var: worker_token_check.stdout_lines
+  when: inventory_hostname in groups['k3snodes']
+- name: Install K3s Agent on Worker Nodes
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_server_ip }}:6443" K3S_TOKEN="$(cat /tmp/{{ token_file }})" sh -
+  when: inventory_hostname in groups['k3snodes']
+- name: Ensure K3s Agent Service is Running on Worker Nodes
+  systemd:
+    name: k3s-agent
+    state: started
+    enabled: yes
+  when: inventory_hostname in groups['k3snodes']
+- name: Debug - Verify K3s Agent Status on Worker Nodes
+  command: "systemctl status k3s-agent"
+  register: k3s_agent_status
+  changed_when: false
+  when: inventory_hostname in groups['k3snodes']
+- name: Debug - Print K3s Agent Status on Worker Nodes
+  debug:
+    var: k3s_agent_status.stdout_lines
+  when: inventory_hostname in groups['k3snodes']
+- name: Deploy MetalLB on Master
+  block:
+    - name: Check if MetalLB Namespace Exists
+      command: "k3s kubectl get namespace metallb-system"
+      register: namespace_check
       changed_when: false
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Debug - Show Retrieved K3s Token
-      debug:
-        msg: "K3s token on master: {{ k3s_token.stdout }}"
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Save K3s Token to Jenkins Workspace
-      copy:
-        content: "{{ k3s_token.stdout }}"
-        dest: "{{ workspace_dir }}/{{ token_file }}"
-        mode: '0644'
-      when: inventory_hostname in groups['k3smaster'] and k3s_token.stdout is defined
-
-    - name: Debug - Verify Token Exists in Jenkins Workspace
-      command: "ls -l {{ workspace_dir }}/{{ token_file }}"
-      register: jenkins_token_check
-      changed_when: false
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Debug - Print Token File Details from Jenkins Workspace
-      debug:
-        var: jenkins_token_check.stdout_lines
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Fetch K3s Token from Jenkins Server to Local
-      fetch:
-        src: "{{ workspace_dir }}/{{ token_file }}"
-        dest: "/tmp/{{ token_file }}"
-        flat: yes
-      delegate_to: localhost
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Debug - Check Local Copy of Token on Jenkins Server
-      command: "ls -l /tmp/{{ token_file }}"
-      register: local_token_check
-      changed_when: false
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Debug - Print Local Token File Details from Jenkins Server
-      debug:
-        var: local_token_check.stdout_lines
-      when: inventory_hostname in groups['k3smaster']
-
-    - name: Distribute K3s Token to Worker Nodes
-      copy:
-        src: "/tmp/{{ token_file }}"
-        dest: "/tmp/{{ token_file }}"
-        mode: '0644'
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Debug - Check Token File on Worker Nodes
-      command: "ls -l /tmp/{{ token_file }}"
-      register: worker_token_check
-      changed_when: false
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Debug - Print Worker Node Token File Details
-      debug:
-        var: worker_token_check.stdout_lines
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Install K3s Agent on Worker Nodes
-      shell: |
-        curl -sfL https://get.k3s.io | K3S_URL="https://{{ k3s_server_ip }}:6443" K3S_TOKEN="$(cat /tmp/{{ token_file }})" sh -
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Ensure K3s Agent Service is Running on Worker Nodes
-      systemd:
-        name: k3s-agent
-        state: started
-        enabled: yes
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Debug - Verify K3s Agent Status on Worker Nodes
-      command: "systemctl status k3s-agent"
-      register: k3s_agent_status
-      changed_when: false
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Debug - Print K3s Agent Status on Worker Nodes
-      debug:
-        var: k3s_agent_status.stdout_lines
-      when: inventory_hostname in groups['k3snodes']
-
-    - name: Deploy MetalLB on Master
-      block:
-        - name: Check if MetalLB Namespace Exists
-          command: "k3s kubectl get namespace metallb-system"
-          register: namespace_check
-          changed_when: false
-          failed_when: false
-
-        - name: Create MetalLB Namespace if it Does Not Exist
-          command: "k3s kubectl create namespace metallb-system"
-          when: namespace_check.rc != 0
-
-        - name: Deploy MetalLB Components
-          command: "k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml"
-
-        - name: Wait for MetalLB Pods to be Running
-          command: "k3s kubectl get pods -n metallb-system"
-          register: metallb_pods
-          until: "'Running' in metallb_pods.stdout"
-          retries: 10
-          delay: 10
-      when: inventory_hostname in groups['k3smaster']
+      failed_when: false
+    - name: Create MetalLB Namespace if it Does Not Exist
+      command: "k3s kubectl create namespace metallb-system"
+      when: namespace_check.rc != 0
+    - name: Deploy MetalLB Components
+      command: "k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml"
+    - name: Wait for MetalLB Pods to be Running
+      command: "k3s kubectl get pods -n metallb-system"
+      register: metallb_pods
+      until: "'Running' in metallb_pods.stdout"
+      retries: 10
+      delay: 10
+  when: inventory_hostname in groups['k3smaster']
