@@ -36,6 +36,6 @@
 #   args:
 #     removes: /usr/local/bin/k3s
 
-# - name: Install K3s worker (Force)
-#   shell: |
-#     curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master }}:6443 K3S_TOKEN={{ slurped_file }} sh -
+- name: Install K3s worker (Force)
+  shell: |
+    curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master }}:6443 K3S_TOKEN={{ slurpslurped_file['content'] | b64decode }} sh -
