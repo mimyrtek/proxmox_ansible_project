@@ -3,8 +3,8 @@
 - name: Gather system facts
   setup:
 
-- name: Stop and disable firewalld service
-  import_tasks: firewall.yaml
+# - name: Stop and disable firewalld service
+#   import_tasks: firewall.yaml
 
 - name: Install K3s on the Master
   import_tasks: install_k3s_master.yaml
