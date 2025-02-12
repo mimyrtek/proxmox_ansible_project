@@ -61,11 +61,9 @@
       register: k3s_token
       changed_when: false
 
-    - name: Store K3s Token as a Global Fact
+    - name: Store K3s Token as a Fact
       set_fact:
         k3s_token_value: "{{ k3s_token.stdout }}"
-      delegate_to: localhost
-      delegate_facts: true
 
     # ---------------------------------
     # Update kubeconfig to Use Correct IP
@@ -85,7 +83,7 @@
   block:
     - name: Debug K3s Token Availability on Worker Nodes
       debug:
-        msg: "Worker node received K3s token: {{ hostvars['k3smaster']['k3s_token_value'] | default('NOT SET') }}"
+        msg: "Worker node received K3s token: {{ k3s_token_value | default('NOT SET') }}"
 
     - name: Ensure Required Dependencies on Workers
       apt:
@@ -107,7 +105,7 @@
         curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="{{ hostvars['k3smaster']['k3s_token_value'] }}" sh -
       args:
         executable: /bin/bash
-      when: hostvars['k3smaster']['k3s_token_value'] is defined
+      when: k3s_token_value is defined
 
     # ---------------------------------
     # Ensure K3s Agent is Running
@@ -117,3 +115,16 @@
         name: k3s-agent
         state: started
         enabled: yes
+
+# ===============================
+# DISPLAY KUBECONFIG FOR OPENLENS
+# ===============================
+- name: Fetch K3s Kubeconfig from Master Node
+  command: cat /etc/rancher/k3s/k3s.yaml
+  register: kubeconfig_content
+  when: "'k3smaster' in inventory_hostname"
+
+- name: Display Kubeconfig in Pipeline Console
+  debug:
+    msg: "{{ kubeconfig_content.stdout }}"
+  when: "'k3smaster' in inventory_hostname"
