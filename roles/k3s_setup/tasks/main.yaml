@@ -1,7 +1,29 @@
 ---
-- name: Define workspace directory (for Jenkins)
+- name: Define Jenkins workspace directory
   set_fact:
-    workspace_dir: "{{ lookup('env', 'WORKSPACE') | default('/var/lib/jenkins/workspace') }}"
+    workspace_dir: "{{ lookup('env', 'WORKSPACE') | default('/var/lib/jenkins/workspace/Install_kubernetes') }}"
+
+- name: Debug - Jenkins Workspace Directory
+  debug:
+    msg: "Jenkins workspace directory is set to: {{ workspace_dir }}"
+
+- name: Ensure Jenkins workspace directory exists on k3smaster
+  file:
+    path: "{{ workspace_dir }}"
+    state: directory
+    mode: '0755'
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Check Jenkins workspace existence
+  command: "ls -ld {{ workspace_dir }}"
+  register: jenkins_workspace_check
+  changed_when: false
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Jenkins workspace directory listing
+  debug:
+    var: jenkins_workspace_check.stdout_lines
+  when: inventory_hostname == "k3smaster"
 
 - name: Retrieve K3s Token from Master
   command: cat /var/lib/rancher/k3s/server/node-token
@@ -9,57 +31,58 @@
   changed_when: false
   when: inventory_hostname == "k3smaster"
 
-- name: Store K3s Token in Jenkins Workspace
+- name: Debug - Print Retrieved K3s Token
+  debug:
+    msg: "K3s Token retrieved: {{ k3s_token.stdout }}"
+  when: inventory_hostname == "k3smaster"
+
+- name: Store K3s Token in /tmp (Master Node)
   copy:
     content: "{{ k3s_token.stdout }}"
-    dest: "{{ workspace_dir }}/k3s_token"
+    dest: "/tmp/k3s_token"
     mode: '0644'
   when: inventory_hostname == "k3smaster"
 
-- name: Fetch K3s Token from Master on Worker Nodes
+- name: Debug - Check token file in /tmp on Master
+  command: "ls -l /tmp/k3s_token"
+  register: token_tmp_check
+  changed_when: false
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Token file in /tmp details
+  debug:
+    var: token_tmp_check.stdout_lines
+  when: inventory_hostname == "k3smaster"
+
+- name: Fetch K3s Token from Master to Jenkins Workspace
+  fetch:
+    src: "/tmp/k3s_token"
+    dest: "{{ workspace_dir }}/k3s_token"
+    flat: yes
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Verify token in Jenkins workspace on Master
+  command: "ls -l {{ workspace_dir }}/k3s_token"
+  register: token_workspace_check
+  changed_when: false
+  when: inventory_hostname == "k3smaster"
+
+- name: Debug - Token file in Jenkins workspace details
+  debug:
+    var: token_workspace_check.stdout_lines
+  when: inventory_hostname == "k3smaster"
+
+- name: Ensure K3s Token is Available on Worker Nodes
   command: cat "{{ workspace_dir }}/k3s_token"
   register: k3s_token
   changed_when: false
   delegate_to: k3smaster
   when: inventory_hostname in groups['k3snodes']
 
-- name: Debug K3s Token on Worker Nodes
+- name: Debug - K3s Token on Worker Nodes
   debug:
     msg: "Worker node received K3s token: {{ k3s_token.stdout | default('MISSING') }}"
-
-- name: Install Required Dependencies
-  package:
-    name:
-      - curl
-      - iptables
-      - socat
-      - conntrack
-      - firewalld
-    state: present
-
-- name: Disable Swap Temporarily
-  command: swapoff -a
-  changed_when: false
-
-- name: Disable Swap Permanently
-  lineinfile:
-    path: /etc/fstab
-    regexp: '.*swap.*'
-    state: absent
-
-- name: Install K3s on Master
-  shell: |
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip={{ ansible_default_ipv4.address }} --tls-san={{ ansible_default_ipv4.address }}" sh -
-  args:
-    executable: /bin/bash
-  when: inventory_hostname == "k3smaster"
-
-- name: Ensure K3s Service is Running (Master)
-  systemd:
-    name: k3s
-    enabled: yes
-    state: started
-  when: inventory_hostname == "k3smaster"
+  when: inventory_hostname in groups['k3snodes']
 
 - name: Install K3s Agent on Worker Nodes
   shell: |
@@ -68,53 +91,20 @@
     executable: /bin/bash
   when: inventory_hostname in groups['k3snodes']
 
+- name: Debug - Check K3s Agent Service on Worker Nodes
+  command: systemctl status k3s-agent
+  register: k3s_agent_status
+  changed_when: false
+  when: inventory_hostname in groups['k3snodes']
+
+- name: Debug - Print K3s Agent Service Status
+  debug:
+    var: k3s_agent_status.stdout_lines
+  when: inventory_hostname in groups['k3snodes']
+
 - name: Ensure K3s Agent Service is Running (Workers)
   systemd:
     name: k3s-agent
     enabled: yes
     state: started
   when: inventory_hostname in groups['k3snodes']
-
-- name: Deploy MetalLB on Master
-  shell: |
-    k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml
-  args:
-    executable: /bin/bash
-  when: inventory_hostname == "k3smaster"
-
-- name: Wait for MetalLB Pods to be Running
-  shell: |
-    k3s kubectl get pods -n metallb-system
-  register: metallb_status
-  until: "'Running' in metallb_status.stdout"
-  retries: 10
-  delay: 10
-  when: inventory_hostname == "k3smaster"
-
-- name: Generate MetalLB ConfigMap File
-  copy:
-    dest: "{{ workspace_dir }}/metallb-config.yaml"
-    content: |
-      apiVersion: v1
-      kind: ConfigMap
-      metadata:
-        namespace: metallb-system
-        name: config
-      data:
-        config: |
-          address-pools:
-          - name: default
-            protocol: layer2
-            addresses:
-            - 192.168.1.100-192.168.1.200
-  when: inventory_hostname == "k3smaster"
-
-- name: Apply MetalLB ConfigMap
-  command: k3s kubectl apply -f "{{ workspace_dir }}/metallb-config.yaml"
-  when: inventory_hostname == "k3smaster"
-
-- name: Restart K3s
-  systemd:
-    name: k3s
-    state: restarted
-  when: inventory_hostname == "k3smaster"
