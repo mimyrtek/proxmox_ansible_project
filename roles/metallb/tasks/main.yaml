@@ -1,10 +1,14 @@
 ---
-- name: Ensure MetalLB namespace exists
-  ansible.builtin.command:
-    cmd: k3s kubectl get namespace metallb-system || k3s kubectl create namespace metallb-system
-  register: namespace_creation
-  changed_when: "'created' in namespace_creation.stdout"
+- name: Check if MetalLB namespace exists
+  ansible.builtin.command: k3s kubectl get namespace metallb-system
+  register: namespace_check
+  failed_when: false
+  changed_when: false
   when: inventory_hostname == "k3smaster"
+
+- name: Create MetalLB namespace if it does not exist
+  ansible.builtin.command: k3s kubectl create namespace metallb-system
+  when: inventory_hostname == "k3smaster" and namespace_check.rc != 0
 
 - name: Deploy MetalLB components
   ansible.builtin.command:
