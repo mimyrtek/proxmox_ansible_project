@@ -42,6 +42,19 @@
 - name: Install K3s Master
   when: "'k3smaster' in inventory_hostname"
   block:
+    - name: Install Python 3 and pip
+      ansible.builtin.package:
+        name:
+          - python3
+          - python3-pip
+        state: present
+
+    - name: Install Kubernetes Python Client
+      ansible.builtin.pip:
+        name:
+          - kubernetes
+          - openshift
+        executable: pip3
 
     - name: Install K3s on Master
       shell: |
@@ -86,7 +99,19 @@
 - name: Install K3s Worker Nodes
   when: "'k3snodes' in group_names"
   block:
+    - name: Install Python 3 and pip
+      ansible.builtin.package:
+        name:
+          - python3
+          - python3-pip
+        state: present
 
+    - name: Install Kubernetes Python Client
+      ansible.builtin.pip:
+        name:
+          - kubernetes
+          - openshift
+        executable: pip3
     - name: Debug K3s Token Availability on Worker Nodes
       debug:
         msg: "Worker node received K3s token: {{ k3s_token_value | default('NOT SET') }}"
