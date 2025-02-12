@@ -1,9 +1,9 @@
 ---
-- name: Create MetalLB namespace
+- name: Ensure MetalLB namespace exists
   ansible.builtin.command:
-    cmd: k3s kubectl create namespace metallb-system --dry-run=client -o yaml | k3s kubectl apply -f -
+    cmd: k3s kubectl get namespace metallb-system || k3s kubectl create namespace metallb-system
   register: namespace_creation
-  failed_when: namespace_creation.rc != 0
+  changed_when: "'created' in namespace_creation.stdout"
   when: inventory_hostname == "k3smaster"
 
 - name: Deploy MetalLB components
