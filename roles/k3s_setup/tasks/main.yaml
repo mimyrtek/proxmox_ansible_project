@@ -18,9 +18,9 @@
   import_tasks: retrieve_token.yaml
   when: inventory_hostname in groups['k3smaster']
 
-# - name: Save K3s Token to Jenkins Workspace
-#   import_tasks: save_token.yaml
-#   when: inventory_hostname in groups['k3smaster']
+- name: Save K3s Token to Jenkins Workspace
+  import_tasks: save_token.yaml
+  when: inventory_hostname in groups['k3smaster']
 
 - name: Fetch K3s Token to Jenkins Server
   import_tasks: fetch_token.yaml
