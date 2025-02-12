@@ -1,19 +1,23 @@
 ---
+- name: Define workspace directory (for Jenkins)
+  set_fact:
+    workspace_dir: "{{ lookup('env', 'WORKSPACE') | default('/var/lib/jenkins/workspace') }}"
+
 - name: Retrieve K3s Token from Master
   command: cat /var/lib/rancher/k3s/server/node-token
   register: k3s_token
   changed_when: false
   when: inventory_hostname == "k3smaster"
 
-- name: Store K3s Token as a File on Master
+- name: Store K3s Token in Jenkins Workspace
   copy:
     content: "{{ k3s_token.stdout }}"
-    dest: "/tmp/k3s_token"
+    dest: "{{ workspace_dir }}/k3s_token"
     mode: '0644'
   when: inventory_hostname == "k3smaster"
 
 - name: Fetch K3s Token from Master on Worker Nodes
-  command: cat /tmp/k3s_token
+  command: cat "{{ workspace_dir }}/k3s_token"
   register: k3s_token
   changed_when: false
   delegate_to: k3smaster
@@ -59,7 +63,7 @@
 
 - name: Install K3s Agent on Worker Nodes
   shell: |
-    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="$(cat /tmp/k3s_token)" sh -
+    curl -sfL https://get.k3s.io | K3S_URL="https://{{ hostvars['k3smaster']['ansible_host'] }}:6443" K3S_TOKEN="$(cat {{ workspace_dir }}/k3s_token)" sh -
   args:
     executable: /bin/bash
   when: inventory_hostname in groups['k3snodes']
@@ -89,7 +93,7 @@
 
 - name: Generate MetalLB ConfigMap File
   copy:
-    dest: "/tmp/metallb-config.yaml"
+    dest: "{{ workspace_dir }}/metallb-config.yaml"
     content: |
       apiVersion: v1
       kind: ConfigMap
@@ -106,7 +110,7 @@
   when: inventory_hostname == "k3smaster"
 
 - name: Apply MetalLB ConfigMap
-  command: k3s kubectl apply -f /tmp/metallb-config.yaml
+  command: k3s kubectl apply -f "{{ workspace_dir }}/metallb-config.yaml"
   when: inventory_hostname == "k3smaster"
 
 - name: Restart K3s
