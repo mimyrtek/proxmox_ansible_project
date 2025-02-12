@@ -1,9 +1,9 @@
 ---
 - name: Ensure Python 3, pip, and Kubernetes client are installed
-  ansible.builtin.import_tasks: prerequisites.yml
+  ansible.builtin.import_tasks: prerequisites.yaml
 
 - name: Install MetalLB
-  ansible.builtin.import_tasks: install.yml
+  ansible.builtin.import_tasks: install.yaml
 
 - name: Configure MetalLB
-  ansible.builtin.import_tasks: configure.yml
+  ansible.builtin.import_tasks: configure.yaml
