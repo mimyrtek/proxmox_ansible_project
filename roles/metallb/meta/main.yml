@@ -1,0 +1,9 @@
+galaxy_info:
+  author: Your Name
+  description: Install and configure MetalLB on a k3s cluster.
+  license: MIT
+  min_ansible_version: 2.9
+  platforms:
+    - name: Linux
+      versions:
+        - all
