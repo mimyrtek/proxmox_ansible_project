@@ -3,7 +3,7 @@
 - name: Copy K3s Token to Worker Nodes
   copy:
     src: "/var/lib/jenkins/workspace/Install_kubernetes/k3s_token_local"
-    dest: "/var/lib/rancher/k3s/server/node-token"
+    dest: "/var/lib/rancher/k3s/agent/node-token"
     owner: root
     group: root
     mode: '0600'
