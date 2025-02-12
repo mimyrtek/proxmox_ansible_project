@@ -1,0 +1,13 @@
+---
+- name: Create MetalLB namespace
+  ansible.builtin.shell: k3s kubectl create namespace metallb-system --dry-run=client -o yaml | k3s kubectl apply -f -
+
+- name: Deploy MetalLB components
+  ansible.builtin.shell: k3s kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml
+
+- name: Wait for MetalLB pods to be running
+  ansible.builtin.command: k3s kubectl get pods -n metallb-system
+  register: metallb_pods
+  until: "'Running' in metallb_pods.stdout"
+  retries: 10
+  delay: 10

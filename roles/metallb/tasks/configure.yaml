@@ -1,0 +1,8 @@
+---
+- name: Apply MetalLB ConfigMap
+  ansible.builtin.shell: |
+    echo '{{ lookup("template", "metallb-config.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
+
+- name: Apply MetalLB Address Pool
+  ansible.builtin.shell: |
+    echo '{{ lookup("template", "metallb-address-pool.yaml.j2") | to_yaml }}' | k3s kubectl apply -f -
