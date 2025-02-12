@@ -3,4 +3,5 @@
   roles:
      - { role: firewall, tags: firewall }
      - { role: k3s_setup, tags: k3s_setup }
+     - { role: metallb, tags: metallb }
     
