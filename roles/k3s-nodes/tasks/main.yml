@@ -44,6 +44,8 @@
 
 - name: Install K3s worker (Force)
   shell: |   
-    curl -sfL https://get.k3s.io | K3S_URL="https://10.10.50.151:6443" K3S_TOKEN="K10c2ad91dfceb2bf6bcd87afa9ddb644f1d4ec3a2f7f8941bd629d71a694e31bff::server:zq295set" sh -
+    curl -sfL https://get.k3s.io | k3s agent --server https://k3s-master.local:6443 --token K10917b312568f60951b114e95f88bf8daf55bfb545edde8234d8aa8666abc5a1f5::server:2e8e85d135d920d19831f55e0755c0d8"
   args:
      creates: /usr/local/bin/k3s
+
+#K3S_URL="https://10.10.50.151:6443" K3S_TOKEN="K10c2ad91dfceb2bf6bcd87afa9ddb644f1d4ec3a2f7f8941bd629d71a694e31bff::server:zq295set" sh -     
