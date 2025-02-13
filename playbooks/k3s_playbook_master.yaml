@@ -5,5 +5,5 @@
   roles:
      - { role: firewall, tags: firewall }
      - { role: k3s-master, tags: k3s-master }
-     #- { role: metallb, tags: metallb }
+     - { role: metallb, tags: metallb }
     

@@ -31,7 +31,7 @@
 - name: Download and install K3s on Server
   shell: |
     
-    curl -sfL https://get.k3s.io | sh -s - server --cluster-init
+    curl -sfL https://get.k3s.io | sh -s - server --cluster-init --disable-network-policy --disable=traefik --flannel-backend=none --cluster-cidr=192.168.0.0/16
 
   args:
     creates: /usr/local/bin/k3s
