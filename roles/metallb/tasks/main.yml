@@ -1,0 +1,28 @@
+---
+- name: Create the MetalLB namespace
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ metallb_namespace }}"
+
+- name: Install MetalLB manifest
+  kubernetes.core.k8s:
+    state: present
+    src: "https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml"
+
+- name: Wait for MetalLB pods to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: "{{ metallb_namespace }}"
+    wait: yes
+    wait_timeout: 300
+    label_selectors:
+      - "app=metallb"
+
+- name: Apply MetalLB ConfigMap
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'metallb-configmap.yaml.j2') }}"
