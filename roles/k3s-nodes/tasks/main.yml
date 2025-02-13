@@ -39,6 +39,8 @@
 - name: Uninstall Agent
   shell: |
     k3s-uninstall.sh
+  ignore_errors: yes
+
 
 # - name: Install K3s worker (Force)
 #   shell: |   
