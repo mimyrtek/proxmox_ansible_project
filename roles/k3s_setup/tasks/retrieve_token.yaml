@@ -1,5 +1,0 @@
----
-# retrieve_token.yaml - Retrieve the K3s token from the master
-- name: Retrieve K3s Token from Master
-  command: cat /var/lib/rancher/k3s/server/node-token
-  register: k3s_token_local

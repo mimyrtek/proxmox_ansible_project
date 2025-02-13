@@ -1,4 +1,0 @@
----
-# install_k3s_master.yaml - Install K3s on master
-- name: Install K3s on Master
-  shell: "curl -sfL https://get.k3s.io | sh -s - server --disable traefik"

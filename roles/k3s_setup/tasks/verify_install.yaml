@@ -1,9 +1,0 @@
----
-# verify_install.yaml - Final verification
-- name: Verify K3s installation
-  command: k3s kubectl get nodes
-  register: k3s_nodes
-
-- name: Debug - Show K3s Nodes
-  debug:
-    msg: "{{ k3s_nodes.stdout_lines }}"
