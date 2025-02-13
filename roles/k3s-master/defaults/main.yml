@@ -6,5 +6,5 @@ k3s_install_url: "https://get.k3s.io"
 k3s_server_options: "--write-kubeconfig-mode 644"
 #ansible_python_interpreter: /usr/bin/python3
 
-hosts: k3s-master
+hosts: k3s-master.local
 become: yes
