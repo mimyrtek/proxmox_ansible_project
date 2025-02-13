@@ -5,6 +5,6 @@
   roles:
      #- { role: firewall, tags: firewall }
      - { role: k3s-master, tags: k3s-master }
-     - { role: k3s-nodes, tags: k3s-nodes }
+     #- { role: k3s-nodes, tags: k3s-nodes }
      #- { role: metallb, tags: metallb }
     

@@ -38,7 +38,7 @@ pipeline {
                         echo "Running as user: \$(whoami)"
                         
                         echo "Executing Ansible playbook..."
-                        ansible-playbook -i ./inventory/inventory.yaml -b -v ./playbooks/${env.PLAYBOOK} -u ubuntu
+                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.PLAYBOOK} -u ubuntu
                         """
                     }
                 }
