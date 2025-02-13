@@ -22,20 +22,6 @@
   debug:
     msg: "{{ slurped_file['content'] | b64decode }}"
 
-# tasks file for k3s-worker
-# - name: Print the k3s_master variable from vars file
-#   debug:
-#     msg: "{{ k3s_master }}"
-
-# - name: Print the k3s_token variable from vars file
-#   debug:
-#     msg: "{{ k3s_token }}"
-    
-# - name: Remove existing K3s worker installation
-#   shell: /usr/local/bin/k3s-agent-uninstall.sh
-#   args:
-#     removes: /usr/local/bin/k3s
-
 - name: Uninstall Agent
   shell: |
     k3s-agent-uninstall.sh
@@ -48,4 +34,3 @@
   args:
     creates: /usr/local/bin/k3s
 
-#
