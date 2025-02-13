@@ -40,8 +40,7 @@ pipeline {
                         echo "Executing Ansible playbook for server..."
                         ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.PLAYBOOK} -u ubuntu
                         
-                        echo "Executing Ansible playbook for Nodes..."
-                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3snodes ./playbooks/${env.PLAYBOOK} -u ubuntu
+                        
                         """
                     }
                 }
