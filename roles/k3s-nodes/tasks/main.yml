@@ -41,12 +41,11 @@
     k3s-agent-uninstall.sh
   ignore_errors: yes
 
-
-- name: Install K3s worker (Force)
+- name: Install K3s worker (Force) as root
   become: yes
-  shell: |   
-    curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master }}:6443 K3S_TOKEN={{ slurped_file['content'] | b64decode }} sh -
+  shell: |
+    sudo -i sh -c 'curl -sfL https://get.k3s.io | K3S_URL=https://{{ k3s_master }}:6443 K3S_TOKEN={{ slurped_file["content"] | b64decode }} sh -'
   args:
-     creates: /usr/local/bin/k3s
+    creates: /usr/local/bin/k3s
 
 #
