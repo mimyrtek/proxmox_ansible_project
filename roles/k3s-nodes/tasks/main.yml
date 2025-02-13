@@ -38,7 +38,7 @@
 
 - name: Uninstall Agent
   shell: |
-    k3s-uninstall.sh
+    k3s-agent-uninstall.sh
   ignore_errors: yes
 
 
