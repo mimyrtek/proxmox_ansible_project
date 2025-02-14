@@ -90,17 +90,29 @@
   set_fact:
     updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local.com') }}"
 
-# - name: Backup the original kubeconfig file
-#   delegate_to: localhost
-#   become: no
-#   copy:
-#     src: ~/.kube/config
-#     dest: ~/.kube/config.bak
-#     remote_src: yes
-# - name: Write the updated kubeconfig back to file
-  # delegate_to: localhost
-  # become: no
-  # copy:
-    # content: "{{ updated_kubeconfig }}"
-    # dest: ~/.kube/config
-    # mode: '0600'
+# Install k9s
+- name: Download k9s binary
+  ansible.builtin.get_url:
+    url: "https://github.com/derailed/k9s/releases/latest/download/k9s_Linux_amd64.tar.gz"
+    dest: "/tmp/k9s_Linux_amd64.tar.gz"
+    mode: '0644'
+  become: true
+
+- name: Extract k9s binary
+  ansible.builtin.unarchive:
+    src: "/tmp/k9s_Linux_amd64.tar.gz"
+    dest: "/usr/local/bin"
+    remote_src: yes
+    mode: '0755'
+  become: true
+
+- name: Ensure k9s uses the k3s kubeconfig
+  ansible.builtin.lineinfile:
+    path: /root/.bashrc
+    line: 'export KUBECONFIG=/etc/rancher/k3s/k3s.yaml'
+    create: yes
+  become: true
+
+- name: Apply kubeconfig environment for the current session
+  ansible.builtin.shell: "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
+  become: true
