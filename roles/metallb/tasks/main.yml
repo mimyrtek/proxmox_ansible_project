@@ -1,4 +1,11 @@
 ---
+- name: Install Kubernetes Python package
+  pip:
+    name: kubernetes
+    state: present
+    executable: pip3
+
+
 - name: Create the MetalLB namespace
   kubernetes.core.k8s:
     state: present
