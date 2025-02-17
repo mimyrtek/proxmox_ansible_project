@@ -44,6 +44,7 @@
 - name: Deploy hello-world app using MetalLB
   kubernetes.core.k8s:
     state: present
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
     definition:
       apiVersion: apps/v1
       kind: Deployment
@@ -70,6 +71,7 @@
 - name: Expose hello-world service using MetalLB
   kubernetes.core.k8s:
     state: present
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
     definition:
       apiVersion: v1
       kind: Service
