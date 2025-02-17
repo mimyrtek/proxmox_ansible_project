@@ -50,6 +50,7 @@
       kind: Deployment
       metadata:
         name: hello-world
+        namespace: default
         labels:
           app: hello-world
       spec:
@@ -77,6 +78,7 @@
       kind: Service
       metadata:
         name: hello-world-service
+        namespace: default
       spec:
         selector:
           app: hello-world
@@ -86,4 +88,3 @@
           targetPort: 5000
         type: LoadBalancer
         loadBalancerIP: 10.10.50.200
-
