@@ -2,5 +2,5 @@
 # defaults file for metallb
 metallb_version: v0.14.9
 metallb_namespace: metallb-system
-metallb_ip_range: "10.10.50.200-10.10.50.220"
+metallb_ip_range: "10.10.50.155-10.10.50.160"
 kubeconfig: "{{ ansible_env.HOME }}/.kube/config"
