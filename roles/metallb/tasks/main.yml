@@ -27,6 +27,8 @@
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'metallb-configmap.yaml.j2') }}"
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+
 
 - name: Wait for MetalLB pods to be ready
   kubernetes.core.k8s_info:
