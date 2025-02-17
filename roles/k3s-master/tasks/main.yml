@@ -121,27 +121,31 @@
   command: kubectl delete -f /var/lib/rancher/k3s/server/manifests/traefik.yaml
   ignore_errors: yes
 
-- name: Install MetalLB in k3s cluster
-  command: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.10/config/manifests/metallb-native.yaml
-
-- name: Apply MetalLB configuration
+- name: Create MetalLB IPAddressPool config
   copy:
-    dest: /tmp/metallb-config.yaml
+    dest: /tmp/metallb-ipaddresspool.yaml
     content: |
-      apiVersion: v1
-      kind: ConfigMap
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
       metadata:
+        name: default-pool
         namespace: metallb-system
-        name: config
-      data:
-        config: |
-          address-pools:
-          - name: default
-            protocol: layer2
-            addresses:
-            - 10.10.50.200-10.10.50.220
-  register: metallb_config
+      spec:
+        addresses:
+        - 10.10.50.200-10.10.50.220
 
-- name: Apply MetalLB configuration to cluster
-  command: kubectl apply -f /tmp/metallb-config.yaml
-  when: metallb_config is changed  
+      ---
+
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: l2adv
+        namespace: metallb-system
+      spec:
+        ipAddressPools:
+        - default-pool
+  register: metallb_ipconfig
+
+- name: Apply MetalLB IPAddressPool config
+  command: kubectl apply -f /tmp/metallb-ipaddresspool.yaml
+  when: metallb_ipconfig is changed
