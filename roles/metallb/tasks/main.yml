@@ -159,4 +159,4 @@
           port: 80
           targetPort: 5000
         type: LoadBalancer
-        loadBalancerIP: 10.10.50.152
+        loadBalancerIP: 10.10.50.155
