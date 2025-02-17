@@ -27,8 +27,8 @@
   kubernetes.core.k8s:
     state: present
     src: "https://raw.githubusercontent.com/metallb/metallb/v0.13.11/config/manifests/metallb-native.yaml"
-    #kubeconfig: "{{ ansible_env.HOME }}/.kube/config"
-    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+    kubeconfig: "{{ ansible_env.HOME }}/.kube/config"
+    #kubeconfig: "/etc/rancher/k3s/k3s.yaml"
 
 
 
