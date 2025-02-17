@@ -17,11 +17,11 @@
     state: present
     kubeconfig: "/etc/rancher/k3s/k3s.yaml"
 
-
 - name: Install MetalLB manifest
   kubernetes.core.k8s:
     state: present
-    src: "https://raw.githubusercontent.com/metallb/metallb/{{ metallb_version }}/config/manifests/metallb-native.yaml"
+    src: "https://raw.githubusercontent.com/metallb/metallb/main/manifests/metallb-native.yaml"
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
 
 - name: Wait for MetalLB pods to be ready
   kubernetes.core.k8s_info:
