@@ -30,18 +30,20 @@
     kubeconfig: "{{ ansible_env.HOME }}/.kube/config"
     #kubeconfig: "/etc/rancher/k3s/k3s.yaml"
 
-
-
-- name: Wait for MetalLB pods to be ready
-  kubernetes.core.k8s_info:
-    kind: Pod
-    namespace: "{{ metallb_namespace }}"
-    wait: yes
-    wait_timeout: 300
-    label_selectors:
-      - "app=metallb"
-
 - name: Apply MetalLB ConfigMap
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', 'metallb-configmap.yaml.j2') }}"
+
+- name: Wait for MetalLB pods to be ready
+  kubernetes.core.k8s_info:
+    kind: Pod
+    namespace: metallb-system
+    kubeconfig: "{{ ansible_env.HOME }}/.kube/config"
+  register: result
+  until: result.resources | selectattr('status.phase', 'equalto', 'Running') | list | length == 2
+  retries: 30
+  delay: 10
+
+
+
