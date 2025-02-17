@@ -120,3 +120,28 @@
 - name: Uninstall Traefik from k3s
   command: kubectl delete -f /var/lib/rancher/k3s/server/manifests/traefik.yaml
   ignore_errors: yes
+
+- name: Install MetalLB in k3s cluster
+  command: kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.10/config/manifests/metallb-native.yaml
+
+- name: Apply MetalLB configuration
+  copy:
+    dest: /tmp/metallb-config.yaml
+    content: |
+      apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        namespace: metallb-system
+        name: config
+      data:
+        config: |
+          address-pools:
+          - name: default
+            protocol: layer2
+            addresses:
+            - 10.10.50.200-10.10.50.220
+  register: metallb_config
+
+- name: Apply MetalLB configuration to cluster
+  command: kubectl apply -f /tmp/metallb-config.yaml
+  when: metallb_config is changed  
