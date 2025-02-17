@@ -40,4 +40,48 @@
   delay: 10
 
 
+#[-----------------------------------------]
+- name: Deploy hello-world app using MetalLB
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: hello-world
+        labels:
+          app: hello-world
+      spec:
+        replicas: 1
+        selector:
+          matchLabels:
+            app: hello-world
+        template:
+          metadata:
+            labels:
+              app: hello-world
+          spec:
+            containers:
+            - name: hello-world
+              image: mimyrtek/hello-world:latest
+              ports:
+              - containerPort: 5000
+
+- name: Expose hello-world service using MetalLB
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: hello-world-service
+      spec:
+        selector:
+          app: hello-world
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 5000
+        type: LoadBalancer
+        loadBalancerIP: 10.10.50.200
 
