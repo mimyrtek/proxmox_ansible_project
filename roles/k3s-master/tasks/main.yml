@@ -116,3 +116,7 @@
 - name: Apply kubeconfig environment for the current session
   ansible.builtin.shell: "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
   become: true
+
+- name: Uninstall Traefik from k3s
+  command: kubectl delete -f /var/lib/rancher/k3s/server/manifests/traefik.yaml
+  ignore_errors: yes
