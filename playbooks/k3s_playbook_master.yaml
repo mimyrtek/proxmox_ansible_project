@@ -3,9 +3,9 @@
     ansible_python_interpreter: /usr/bin/python3
   become: yes
   roles:
-     #- { role: firewall, tags: firewall }
-     #- { role: k3s-master, tags: k3s-master }
-     #- { role: firewall, tags: firewall }
+     - { role: firewall, tags: firewall }
+     - { role: k3s-master, tags: k3s-master }
+     - { role: firewall, tags: firewall }
      - { role: metallb, tags: metallb}
      
     
