@@ -11,7 +11,7 @@ pipeline {
 
     environment {
         ANSIBLE_HOST_KEY_CHECKING = 'False'  // Disable host key checking for Ansible SSH connections
-        PLAYBOOK = 'k3s_playbook_master.yaml'  // Hardcoded Ansible playbook to run
+        //PLAYBOOK = 'k3s_playbook_master.yaml'  // Hardcoded Ansible playbook to run
     }
 
     stages {
@@ -31,7 +31,7 @@ pipeline {
             steps {
                 ansiColor('xterm') {  // Ensure output colors are readable
                     script {
-                        echo "Executing Ansible Playbook: ${env.PLAYBOOK}"
+                        echo "Executing Ansible Playbook: ${env.ANSIBLE_PLAYBOOK}"
                         
                         sh """
                         #!/bin/bash
@@ -41,7 +41,7 @@ pipeline {
                         echo "Running as user: \$(whoami)"
                         
                         echo "Executing Ansible playbook for server..."
-                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.PLAYBOOK} -u ubuntu
+                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.ANSIBLE_PLAYBOOK} -u ubuntu
                                                                        
                         """
                     }
