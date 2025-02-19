@@ -1,5 +1,4 @@
 ---
----
 - name: Ensure ArgoCD namespace exists
   kubernetes.core.k8s:
     name: "{{ argocd_namespace }}"
