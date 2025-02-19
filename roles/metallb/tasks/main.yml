@@ -100,7 +100,7 @@
         namespace: metallb-system
       spec:
         addresses:
-        - 10.10.50.151-10.10.50.160
+        - 10.10.50.155-10.10.50.160
 
 - name: Create MetalLB L2Advertisement
   kubernetes.core.k8s:
