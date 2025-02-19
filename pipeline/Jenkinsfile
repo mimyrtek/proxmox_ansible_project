@@ -37,7 +37,7 @@ pipeline {
                         cd ansible-project  # Move into the project directory
                         echo "Running as user: \$(whoami)"
                         echo "Executing Ansible playbook for server..."
-                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.ANSIBLE_PLAYBOOK} -u ubuntu
+                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3snodes ./playbooks/${env.ANSIBLE_PLAYBOOK} -u ubuntu
                         """
                     }
                 }
