@@ -19,8 +19,7 @@ pipeline {
             steps {
                 script {
                     echo "Cleaning up old repository (if exists)..."
-                    sh 'rm -rf ansible-project || true'  // Remove the repo if it already exists to avoid conflicts
-                    
+                    sh 'rm -rf ansible-project || true'  // Remove the repo if it already exists to avoid conflicts                    
                     echo "Cloning the Ansible project repository..."
                     sh 'git clone https://github.com/mimyrtek/proxmox_ansible_project.git ansible-project'  // Clone the repository fresh
                 }
@@ -32,17 +31,13 @@ pipeline {
                 ansiColor('xterm') {  // Ensure output colors are readable
                     script {
                         echo "Executing Ansible Playbook: ${env.ANSIBLE_PLAYBOOK}"
-                        
                         sh """
                         #!/bin/bash
                         set -e  # Exit immediately if a command fails
                         cd ansible-project  # Move into the project directory
-                        
                         echo "Running as user: \$(whoami)"
-                        
                         echo "Executing Ansible playbook for server..."
                         ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.ANSIBLE_PLAYBOOK} -u ubuntu
-                                                                       
                         """
                     }
                 }
