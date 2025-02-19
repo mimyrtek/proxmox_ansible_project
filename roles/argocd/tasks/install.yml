@@ -1,10 +1,13 @@
 ---
+---
 - name: Ensure ArgoCD namespace exists
   kubernetes.core.k8s:
     name: "{{ argocd_namespace }}"
     api_version: v1
     kind: Namespace
     state: present
+  environment:
+    KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"  # Adjust this path if needed
 
 - name: Install ArgoCD via kubectl
   kubernetes.core.k8s:
