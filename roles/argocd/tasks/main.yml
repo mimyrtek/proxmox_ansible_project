@@ -1,4 +1,32 @@
 ---
+- name: Ensure .kube directory exists
+  file:
+    path: "~/.kube"
+    state: directory
+    mode: '0755'
+
+- name: Copy K3s kubeconfig to standard location
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: ~/.kube/config
+    remote_src: yes
+    mode: '0600'
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+
+- name: Set KUBECONFIG environment variable
+  lineinfile:
+    path: ~/.bashrc
+    line: 'export KUBECONFIG=~/.kube/config'
+    create: yes
+  when: ansible_env.SHELL is defined and ansible_env.SHELL != "/bin/sh"
+
+- name: Reload shell environment
+  shell: source ~/.bashrc
+  args:
+    executable: /bin/bash
+  when: ansible_env.SHELL is defined and ansible_env.SHELL != "/bin/sh"
+
 - name: Install ArgoCD
   include_tasks: install.yml
 
