@@ -3,7 +3,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: argocd-server
-  namespace: {{ argocd_namespace }}
+  namespace: default
   annotations:
     metallb.universe.tf/address-pool: default-pool
 spec:
