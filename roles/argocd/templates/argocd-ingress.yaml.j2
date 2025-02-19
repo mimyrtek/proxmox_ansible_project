@@ -5,7 +5,7 @@ metadata:
   name: argocd-server
   namespace: {{ argocd_namespace }}
   annotations:
-    metallb.universe.tf/address-pool: default
+    metallb.universe.tf/address-pool: default-pool
 spec:
   type: LoadBalancer
   #loadBalancerIP: {{ argocd_lb_ip }}
