@@ -5,8 +5,8 @@
     api_version: v1
     kind: Namespace
     state: present
-  environment:
-    KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"  # Adjust this path if needed
+  # environment:
+  #   KUBECONFIG: "/etc/rancher/k3s/k3s.yaml"  # Adjust this path if needed
 
 - name: Install ArgoCD via kubectl
   kubernetes.core.k8s:
