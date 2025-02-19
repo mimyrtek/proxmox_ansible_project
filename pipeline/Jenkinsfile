@@ -1,0 +1,61 @@
+pipeline {
+    agent any  // Run on any available Jenkins agent
+    
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))  // Keep only the last 10 builds
+        ansiColor('xterm')  // Enable ANSI color support in console output
+    }
+    parameters {
+        choice(name: 'ANSIBLE_PLAYBOOK', choices: ['k3s_playbook_master.yaml', 'k3s_playbook_nodes.yaml', 'k3s_metallb.yaml', 'k3s_argocd.yaml'], description: 'Select the Ansible playbook to run')
+    }
+
+    environment {
+        ANSIBLE_HOST_KEY_CHECKING = 'False'  // Disable host key checking for Ansible SSH connections
+        PLAYBOOK = 'k3s_playbook_master.yaml'  // Hardcoded Ansible playbook to run
+    }
+
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    echo "Cleaning up old repository (if exists)..."
+                    sh 'rm -rf ansible-project || true'  // Remove the repo if it already exists to avoid conflicts
+                    
+                    echo "Cloning the Ansible project repository..."
+                    sh 'git clone https://github.com/mimyrtek/proxmox_ansible_project.git ansible-project'  // Clone the repository fresh
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                ansiColor('xterm') {  // Ensure output colors are readable
+                    script {
+                        echo "Executing Ansible Playbook: ${env.PLAYBOOK}"
+                        
+                        sh """
+                        #!/bin/bash
+                        set -e  # Exit immediately if a command fails
+                        cd ansible-project  # Move into the project directory
+                        
+                        echo "Running as user: \$(whoami)"
+                        
+                        echo "Executing Ansible playbook for server..."
+                        ansible-playbook -i ./inventory/inventory.yaml -b -v -l k3smaster ./playbooks/${env.PLAYBOOK} -u ubuntu
+                                                                       
+                        """
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Ansible playbook executed successfully!'
+        }
+        failure {
+            echo '❌ Ansible playbook execution failed. Check logs for details.'
+        }
+    }
+}
