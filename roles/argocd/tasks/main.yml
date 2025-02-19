@@ -27,8 +27,36 @@
     executable: /bin/bash
   when: ansible_env.SHELL is defined and ansible_env.SHELL != "/bin/sh"
 
-# - name: Install ArgoCD
-#   include_tasks: install.yml
 
-- name: Configure ArgoCD Ingress
-  include_tasks: ingress.yml
+
+- name: Create MetalLB L2Advertisement
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+    definition:
+      apiVersion: metallb.io/v1beta1
+      kind: L2Advertisement
+      metadata:
+        name: l2-adv
+        namespace: metallb-system
+
+
+- name: Expose argocd-server service using MetalLB
+  kubernetes.core.k8s:
+    state: present
+    kubeconfig: "/etc/rancher/k3s/k3s.yaml"
+    definition:
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: argocd-server-service
+        namespace: default
+      spec:
+        selector:
+          app: argocd-server
+        ports:
+        - protocol: TCP
+          port: 80
+          targetPort: 31779
+        type: LoadBalancer
+        loadBalancerIP: 10.10.50.159

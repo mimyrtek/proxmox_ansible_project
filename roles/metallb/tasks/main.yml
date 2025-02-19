@@ -88,6 +88,21 @@
 #           targetPort: 5000
 #         type: LoadBalancer
 #         loadBalancerIP: 10.10.50.200
+# apiVersion: metallb.io/v1beta1
+# kind: IPAddressPool
+# metadata:
+#   name: default
+#   namespace: metallb-system
+# spec:
+#   addresses:
+#     - 10.10.50.150-10.10.50.200
+# ---
+# apiVersion: metallb.io/v1beta1
+# kind: L2Advertisement
+# metadata:
+#   name: default
+#   namespace: metallb-system
+
 - name: Create MetalLB IPAddressPool
   kubernetes.core.k8s:
     state: present
@@ -100,7 +115,7 @@
         namespace: metallb-system
       spec:
         addresses:
-        - 10.10.50.155-10.10.50.160
+          - 10.10.50.155-10.10.50.160
 
 - name: Create MetalLB L2Advertisement
   kubernetes.core.k8s:
