@@ -5,7 +5,6 @@
     state: directory
     mode: '0755'
 
-
 - name: Copy K3s kubeconfig to standard location
   copy:
     src: /etc/rancher/k3s/k3s.yaml
@@ -28,8 +27,8 @@
     executable: /bin/bash
   when: ansible_env.SHELL is defined and ansible_env.SHELL != "/bin/sh"
 
-- name: Install ArgoCD
-  include_tasks: install.yml
+# - name: Install ArgoCD
+#   include_tasks: install.yml
 
 - name: Configure ArgoCD Ingress
   include_tasks: ingress.yml
