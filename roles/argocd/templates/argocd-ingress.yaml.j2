@@ -8,7 +8,7 @@ metadata:
     metallb.universe.tf/address-pool: default
 spec:
   type: LoadBalancer
-  loadBalancerIP: {{ argocd_lb_ip }}
+  #loadBalancerIP: {{ argocd_lb_ip }}
   selector:
     app.kubernetes.io/name: argocd-server
   ports:
