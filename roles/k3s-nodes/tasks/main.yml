@@ -34,3 +34,6 @@
   args:
     creates: /usr/local/bin/k3s
 
+- name: Label the Node as a Worker
+  command: kubectl label node {{ inventory_hostname }} node-role.kubernetes.io/worker=
+  delegate_to: k3smaster
