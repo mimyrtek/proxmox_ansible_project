@@ -1,0 +1,6 @@
+---
+- name: Deploy ArgoCD LoadBalancer Service
+  kubernetes.core.k8s:
+    state: present
+    namespace: "{{ argocd_namespace }}"
+    definition: "{{ lookup('template', 'argocd-ingress.yaml.j2') }}"

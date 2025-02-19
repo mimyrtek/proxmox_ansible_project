@@ -1,0 +1,3 @@
+---
+- name: Restart ArgoCD
+  command: kubectl rollout restart deployment -n {{ argocd_namespace }}

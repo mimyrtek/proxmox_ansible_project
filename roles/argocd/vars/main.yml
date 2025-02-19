@@ -1,0 +1,4 @@
+---
+argocd_namespace: "argocd"
+argocd_version: "stable"
+argocd_lb_ip: "10.10.50.156"

@@ -7,5 +7,5 @@
      - { role: k3s-master, tags: k3s-master }
      - { role: firewall, tags: firewall }
      - { role: metallb, tags: metallb}
-     
+     - { role: argocd, tags: argocd}
     
