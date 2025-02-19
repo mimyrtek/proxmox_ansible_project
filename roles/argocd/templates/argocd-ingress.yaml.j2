@@ -1,14 +1,13 @@
----
 apiVersion: v1
 kind: Service
 metadata:
   name: argocd-server
   namespace: default
   annotations:
-    metallb.universe.tf/address-pool: default-pool
+    metallb.universe.tf/address-pool: default-pool  # Make sure MetalLB has an IP pool
 spec:
   type: LoadBalancer
-  loadBalancerIP: {{ argocd_lb_ip }}
+  loadBalancerIP: 10.10.50.159  # Set your desired external IP
   selector:
     app.kubernetes.io/name: argocd-server
   ports:

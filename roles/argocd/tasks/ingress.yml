@@ -1,29 +1,9 @@
 ---
-# - name: Deploy ArgoCD LoadBalancer Service
-#   kubernetes.core.k8s:
-#     state: present
-#     namespace: "default"
-#     definition: "{{ lookup('template', 'argocd-ingress.yaml.j2') }}"
+- name: Deploy ArgoCD LoadBalancer Service
+  kubernetes.core.k8s:
+    state: present
+    namespace: "default"
+    definition: "{{ lookup('template', 'argocd-ingress.yaml.j2') }}"
 
 
-apiVersion: v1
-kind: Service
-metadata:
-  name: argocd-server
-  namespace: default
-  annotations:
-    metallb.universe.tf/address-pool: default  # Make sure MetalLB has an IP pool
-spec:
-  type: LoadBalancer
-  loadBalancerIP: 10.10.50.159  # Set your desired external IP
-  selector:
-    app.kubernetes.io/name: argocd-server
-  ports:
-    - name: http
-      port: 80
-      targetPort: 8080
-      protocol: TCP
-    - name: https
-      port: 443
-      targetPort: 443
-      protocol: TCP
+
