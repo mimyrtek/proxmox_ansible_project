@@ -40,7 +40,6 @@
         name: l2-adv
         namespace: metallb-system
 
-
 - name: Expose argocd-server service using MetalLB
   kubernetes.core.k8s:
     state: present
@@ -49,14 +48,21 @@
       apiVersion: v1
       kind: Service
       metadata:
-        name: argocd-server-service
-        namespace: default
+        name: argocd-server
+        namespace: argocd  # Ensure it's in the correct namespace
+        annotations:
+          metallb.universe.tf/address-pool: default  # Ensure this matches your MetalLB pool
       spec:
         selector:
-          app: argocd-server
-        ports:
-        - protocol: TCP
-          port: 80
-          targetPort: 31779
+          app.kubernetes.io/name: argocd-server  # Correct selector
         type: LoadBalancer
-        loadBalancerIP: 10.10.50.159
+        loadBalancerIP: 10.10.50.159  # Ensure this IP is in the MetalLB pool
+        ports:
+          - name: http
+            protocol: TCP
+            port: 80
+            targetPort: 8080
+          - name: https
+            protocol: TCP
+            port: 443
+            targetPort: 443
