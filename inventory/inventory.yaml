@@ -12,11 +12,11 @@ all:
           ansible_host: 10.10.50.152
           ansible_user: ubuntu
           ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k3snode2:
-          ansible_host: 10.10.50.153
-          ansible_user: ubuntu
-          ansible_ssh_private_key_file: ~/.ssh/id_ed25519
-        k3snode3:
-          ansible_host: 10.10.50.154
-          ansible_user: ubuntu
-          ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+        # k3snode2:
+        #   ansible_host: 10.10.50.153
+        #   ansible_user: ubuntu
+        #   ansible_ssh_private_key_file: ~/.ssh/id_ed25519
+        # k3snode3:
+        #   ansible_host: 10.10.50.154
+        #   ansible_user: ubuntu
+        #   ansible_ssh_private_key_file: ~/.ssh/id_ed25519
