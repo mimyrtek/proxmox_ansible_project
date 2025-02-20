@@ -72,7 +72,7 @@
 
 - name: Show the command to join worker nodes
   debug:
-    msg: "Worker nodes can join using the following command: k3s agent --server https://k3s-master.local:6443 --token {{ k3s_token_output.stdout }}"
+    msg: "Worker nodes can join using the following command: k3s agent --server https://k3smaster.local:6443 --token {{ k3s_token_output.stdout }}"
 
 - name: Copy k3s.yaml from master node to local machine
   fetch:
@@ -92,7 +92,7 @@
   delegate_to: localhost
   become: no
   set_fact:
-    updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local') }}"
+    updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3smaster.local') }}"
 
 # Install k9s
 - name: Download k9s binary
