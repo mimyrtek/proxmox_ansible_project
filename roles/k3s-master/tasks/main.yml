@@ -31,7 +31,7 @@
 
 - name: Download and install k3s
   ansible.builtin.shell: >
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC='--flannel-backend\=none --disable-network-policy --write-kubeconfig-mode 644' sh -
+    curl -sfL https://get.k3s.io | K3S_KUBECONFIG_MODE="644" INSTALL_K3S_EXEC="server" sh -s - --flannel-backend none
   args:
     creates: /usr/local/bin/k3s
   become: true
