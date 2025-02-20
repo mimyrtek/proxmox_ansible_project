@@ -92,7 +92,7 @@
   delegate_to: localhost
   become: no
   set_fact:
-    updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local.com') }}"
+    updated_kubeconfig: "{{ kubeconfig_content.content | b64decode | regex_replace('127.0.0.1', 'k3s-master.local') }}"
 
 # Install k9s
 - name: Download k9s binary
