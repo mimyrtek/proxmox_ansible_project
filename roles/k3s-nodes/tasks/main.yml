@@ -12,7 +12,7 @@
 
 - name: Fetch file from k3s-master
   run_once: true
-  delegate_to: 10.10.50.151
+  delegate_to: "{{ ansible_default_ipv4.address }}"
   slurp:
     src: /var/lib/rancher/k3s/server/node-token
 
@@ -30,7 +30,7 @@
 - name: Install K3s worker (Force) as root
   become: yes
   shell: |
-    sudo -i sh -c 'curl -sfL https://get.k3s.io | K3S_URL=https://10.10.50.151:6443 K3S_TOKEN={{ slurped_file["content"] | b64decode }} sh -'
+    sudo -i sh -c 'curl -sfL https://get.k3s.io | K3S_URL=https://{{ ansible_default_ipv4.address }}:6443 K3S_TOKEN={{ slurped_file["content"] | b64decode }} sh -'
   args:
     creates: /usr/local/bin/k3s
 

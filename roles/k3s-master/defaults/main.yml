@@ -1,9 +1,9 @@
 ---
 # defaults file for k3s-master
 k3s_version: "v1.31.1+k3s1"  # Replace with the version you want to install
-k3s_token: "zq295set"  # Replace with a secure token for joining worker nodes
+k3s_token: "Zq295set"  # Replace with a secure token for joining worker nodes
 k3s_install_url: "https://get.k3s.io"
 k3s_server_options: "--write-kubeconfig-mode 644 --flannel-backend=none --cluster-cidr=192.168.0.0/16 --disable-network-policy --disable=traefik"
 #ansible_python_interpreter: /usr/bin/python3
-hosts: 10.10.50.151
+#hosts: 10.10.50.151
 become: yes
