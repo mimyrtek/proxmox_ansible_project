@@ -121,22 +121,22 @@
   ansible.builtin.shell: "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml"
   become: true
 
-#- name: Uninstall Traefik from k3s
-#  command: kubectl delete -f /var/lib/rancher/k3s/server/manifests/traefik.yaml
-#  ignore_errors: yes
+- name: Uninstall Traefik from k3s
+  command: kubectl delete -f /var/lib/rancher/k3s/server/manifests/traefik.yaml
+  ignore_errors: yes
 
-# - name: Create MetalLB IPAddressPool config
-#   copy:
-#     dest: /tmp/metallb-ipaddresspool.yaml
-#     content: |
-#       apiVersion: metallb.io/v1beta1
-#       kind: IPAddressPool
-#       metadata:
-#         name: default-pool
-#         namespace: metallb-system
-#       spec:
-#         addresses:
-#         - 10.10.50.200-10.10.50.220
+- name: Create MetalLB IPAddressPool config
+  copy:
+    dest: /tmp/metallb-ipaddresspool.yaml
+    content: |
+      apiVersion: metallb.io/v1beta1
+      kind: IPAddressPool
+      metadata:
+        name: default-pool
+        namespace: metallb-system
+      spec:
+        addresses:
+        - 10.10.50.200-10.10.50.220
 
 #       ---
 
